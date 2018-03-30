@@ -13,6 +13,7 @@ Install Java, Maven and [RXTX](http://rxtx.qbang.org/wiki/index.php/Installation
 
 ```
 sudo apt-get install openjdk-8-jdk maven librxtx-java  
+sudo usermod -a -G dialout user -> reboot 
 
 ```
 

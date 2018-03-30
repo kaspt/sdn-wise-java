@@ -40,8 +40,8 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.3"), (byte) 1);
         map.put(new NodeAddress("0.4"), (byte) 2);
         instance.setNeighbors(map);
-        String expResult = "[1, 19, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 2, 0,"
-                + " 3, 1, 0, 4, 2]";
+        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
+                + " 3, 1, 1, 2, 0, 4, 2, 1, 2]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
     }

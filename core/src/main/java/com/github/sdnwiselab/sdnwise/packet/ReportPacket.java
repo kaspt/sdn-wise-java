@@ -31,9 +31,16 @@ public class ReportPacket extends BeaconPacket {
     /**
      * The maximum number of neighbors allowed in a single packet is 35.
      */
-    private static final byte MAX_NEIG = 35,
-            NEIGH_INDEX = 2,
-            NEIGH_SIZE = 3;
+    private static final byte MAX_NEIG = 19,
+            NEIGH_INDEX = 11, // initially was 2 changed to 10 -> 4*2 bytes for sensor values
+            NEIGH_SIZE = 5, // 2 for address 1 for rssi 2 for rx and tx stat
+            RSSI_INDEX = 2,
+            RX_COUNT_INDEX = 3,
+            TX_COUNT_INDEX = 4,
+            TEMPERATURE_INDEX = 2,
+            HUMIDITY_INDEX = 4,
+            LIGHT1_INDEX = 6,
+            LIGHT2_INDEX = 8;
 
     /**
      * This constructor initialize a report packet starting from a byte array.
@@ -101,7 +108,7 @@ public class ReportPacket extends BeaconPacket {
     public final ReportPacket setNeighbors(final int value) {
         if (value <= MAX_NEIG) {
             setPayloadAt((byte) value, NEIGH_INDEX);
-            setPayloadSize((byte) (NEIGH_SIZE + value * NEIGH_SIZE));
+            setPayloadSize((byte) (NEIGH_INDEX + value * NEIGH_SIZE + 1));
         } else {
             throw new IllegalArgumentException("Too many neighbors");
         }
@@ -156,7 +163,7 @@ public class ReportPacket extends BeaconPacket {
      */
     public final int getLinkQuality(final int i) {
         if (i <= MAX_NEIG) {
-            return getPayloadAt(NEIGH_INDEX + ((i + 1) * NEIGH_SIZE));
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RSSI_INDEX);
         } else {
             throw new IllegalArgumentException(
                     "Index exceeds max number of neighbors");
@@ -173,7 +180,7 @@ public class ReportPacket extends BeaconPacket {
      */
     public final ReportPacket setLinkQualityAt(final byte value, final int i) {
         if (i <= MAX_NEIG) {
-            setPayloadAt(value, NEIGH_INDEX + ((i + 1) * NEIGH_SIZE));
+            setPayloadAt(value, NEIGH_INDEX + 1 + i* NEIGH_SIZE + RSSI_INDEX);
             if (getNeigborsSize() < i) {
                 setNeighbors(i);
             }
@@ -184,6 +191,78 @@ public class ReportPacket extends BeaconPacket {
         }
     }
 
+    /**
+     * Getter for the counter value of the packets received from the source node to the i-th node
+     * in the neighbor list
+     * @param i the i-ith node in the neighbors list
+     * @return the rx count value
+     */
+    public final int getRxCount(final int i) {
+        if (i <= MAX_NEIG) {
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RX_COUNT_INDEX);
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Setter for the rx count value between the source node and the i-th node in the 
+     * neighbor list
+     *
+     * @param i the i-th node in the neighbors list.
+     * @param value the rx count
+     * @return the packet itself
+     */
+    public final ReportPacket setRxCount(final byte value, final int i) {
+        if (i <= MAX_NEIG) {
+            setPayloadAt(value, NEIGH_INDEX + 1 + i* NEIGH_SIZE + RX_COUNT_INDEX);
+            if (getNeigborsSize() < i) {
+                setNeighbors(i);
+            }
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+
+    /**
+     * Getter for the counter value of the packets sent from the source node to the i-th node
+     * in the neighbor list
+     * @param i the i-ith node in the neighbors list
+     * @return the tx count value
+     */
+    public final int getTxCount(final int i) {
+        if (i <= MAX_NEIG) {
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + TX_COUNT_INDEX);
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Setter for the tx count value between the source node and the i-th node in the 
+     * neighbor list
+     *
+     * @param i the i-th node in the neighbors list.
+     * @param value the tx count
+     * @return the packet itself
+     */
+    public final ReportPacket setTxCount(final byte value, final int i) {
+        if (i <= MAX_NEIG) {
+            setPayloadAt(value, NEIGH_INDEX + 1 + i* NEIGH_SIZE + TX_COUNT_INDEX);
+            if (getNeigborsSize() < i) {
+                setNeighbors(i);
+            }
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
     /**
      * Gets the list of Neighbors.
      *
@@ -211,6 +290,8 @@ public class ReportPacket extends BeaconPacket {
         for (Map.Entry<NodeAddress, Byte> entry : map.entrySet()) {
             setNeighborAddressAt(entry.getKey(), i);
             setLinkQualityAt(entry.getValue(), i);
+            setRxCount((byte) 1, i);
+            setTxCount((byte) 2, i);
             i++;
         }
         setNeighbors((byte) map.size());
