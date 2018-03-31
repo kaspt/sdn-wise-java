@@ -34,7 +34,7 @@ public class ReportPacket extends BeaconPacket {
      * The maximum number of neighbors allowed in a single packet is 35.
      */
     private static final byte MAX_NEIG = 19,
-            NEIGH_INDEX = 11, // initially was 2 changed to 10 -> 4*2 bytes for sensor values
+            NEIGH_INDEX = 10, // initially was 2 changed to 10 -> 4*2 bytes for sensor values
             NEIGH_SIZE = 5, // 2 for address 1 for rssi 2 for rx and tx stat
             RSSI_INDEX = 2,
             RX_COUNT_INDEX = 3,

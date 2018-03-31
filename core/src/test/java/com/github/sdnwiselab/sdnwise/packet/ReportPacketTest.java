@@ -42,7 +42,7 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
         map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setNeighbors(map);
-        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
+        String expResult = "[1, 31, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
                 + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
@@ -61,7 +61,7 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setTemperature(new byte[] {13, 37});
         instance.setNeighbors(map);
-        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 13, 37, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
+        String expResult = "[1, 31, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 13, 37, 0, 0, 0, 0, 0, 0, 2, 0,"
                 + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
@@ -80,7 +80,7 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setHumidity(new byte[] {13, 37});
         instance.setNeighbors(map);
-        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 13, 37, 0, 0, 0, 0, 0, 2, 0,"
+        String expResult = "[1, 31, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 13, 37, 0, 0, 0, 0, 2, 0,"
                 + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
@@ -99,7 +99,7 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setLight1(new byte[] {13, 37});
         instance.setNeighbors(map);
-        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 13, 37, 0, 0, 0, 2, 0,"
+        String expResult = "[1, 31, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 13, 37, 0, 0, 2, 0,"
                 + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
@@ -118,7 +118,7 @@ public final class ReportPacketTest {
         map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setLight2(new byte[] {13, 37});
         instance.setNeighbors(map);
-        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 13, 37, 0, 2, 0,"
+        String expResult = "[1, 31, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 13, 37, 2, 0,"
                 + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
@@ -208,5 +208,21 @@ public final class ReportPacketTest {
         instance.setNeighbors(map);
         byte[] result = instance.getLight2();
         assertArrayEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getNeighborsSize of class ReportPacket.
+     */
+    @Test
+    public void getNeighborsSizeTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {13, 37};
+        instance.setLight2(expResult);
+        instance.setNeighbors(map);
+        assertEquals(2, instance.getNeigborsSize());
     }
 }
