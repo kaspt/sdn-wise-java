@@ -124,7 +124,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
     /**
      * Timeout for a node request. Increase when using COOJA.
      */
-    protected static final int RESPONSE_TIMEOUT = 300;
+    protected static final int RESPONSE_TIMEOUT = 3000;
     /**
      * Incoming queue.
      */

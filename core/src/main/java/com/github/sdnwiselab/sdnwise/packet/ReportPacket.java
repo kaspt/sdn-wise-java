@@ -18,6 +18,8 @@ package com.github.sdnwiselab.sdnwise.packet;
 
 import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.REPORT;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -264,16 +266,152 @@ public class ReportPacket extends BeaconPacket {
     }
     
     /**
+     * Setter for the Temperature of the source node
+     * @param the temperature
+     * @return the packet itself
+     */
+    public final ReportPacket setTemperature(final byte[] value) {
+    	
+        if (value.length == 2) {
+            setPayloadAt(value[0], TEMPERATURE_INDEX);
+            setPayloadAt(value[1], TEMPERATURE_INDEX + 1);
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Getter for the Temperature of the source node
+     * @return the two temperature bytes
+     */
+    public final byte[] getTemperature() {
+    	return new byte[]{getPayloadAt(TEMPERATURE_INDEX), getPayloadAt(TEMPERATURE_INDEX + 1)};
+    }
+    
+    /**
+     * Getter for the Temperature of the source node as double
+     * @return the temperature as double in °C
+     */
+    public final double getTemperatureAsDouble() {
+    	int intVal = getPayloadAt(TEMPERATURE_INDEX + 1) << 8 | getPayloadAt(TEMPERATURE_INDEX);
+    	return ((double)(intVal / 10.0 - 396)/10.0);
+    }
+    
+    /**
+     * Setter for the humidity of the source node
+     * @param the humidity as two bytes
+     * @return the packet itself
+     */
+    public final ReportPacket setHumidity(final byte[] value) {
+    	
+        if (value.length == 2) {
+            setPayloadAt(value[0], HUMIDITY_INDEX);
+            setPayloadAt(value[1], HUMIDITY_INDEX + 1);
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Getter for the humidity of the source node
+     * @return the two humidity bytes
+     */
+    public final byte[] getHumidity() {
+    	return new byte[]{getPayloadAt(HUMIDITY_INDEX), getPayloadAt(HUMIDITY_INDEX + 1)};
+    }
+    
+    /**
+     * Getter for the Humidity of the source node as double
+     * @return the humidity as double in %
+     */
+    public final double getHumidityAsDouble() {
+    	int intVal = getPayloadAt(HUMIDITY_INDEX + 1) << 8 | getPayloadAt(HUMIDITY_INDEX);
+    	return -4+0.0405*(double)intVal-2.8e-6*((double)intVal)*((double)intVal);
+    }
+    
+    /**
+     * Setter for the light1 of the source node
+     * @param the light1 as two bytes
+     * @return the packet itself
+     */
+    public final ReportPacket setLight1(final byte[] value) {
+    	
+        if (value.length == 2) {
+            setPayloadAt(value[0], LIGHT1_INDEX);
+            setPayloadAt(value[1], LIGHT1_INDEX + 1);
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Getter for the light1 of the source node
+     * @return the two light1 bytes
+     */
+    public final byte[] getLight1() {
+    	return new byte[]{getPayloadAt(LIGHT1_INDEX), getPayloadAt(LIGHT1_INDEX + 1)};
+    }
+    
+    /**
+     * Getter for the Light1 of the source node as double
+     * @return the light1 as double 
+     */
+    public final double getLight1AsDouble() {
+    	int intVal = getPayloadAt(LIGHT1_INDEX + 1) << 8 | getPayloadAt(LIGHT1_INDEX);
+    	return (double)intVal*10.0/7.0;
+    }
+    
+    /**
+     * Setter for the light2 of the source node
+     * @param the light2 as two bytes
+     * @return the packet itself
+     */
+    public final ReportPacket setLight2(final byte[] value) {
+    	
+        if (value.length == 2) {
+            setPayloadAt(value[0], LIGHT2_INDEX);
+            setPayloadAt(value[1], LIGHT2_INDEX + 1);
+            return this;
+        } else {
+            throw new IllegalArgumentException(
+                    "Index exceeds max number of neighbors");
+        }
+    }
+    
+    /**
+     * Getter for the light2 of the source node
+     * @return the two light2 bytes
+     */
+    public final byte[] getLight2() {
+    	return new byte[]{getPayloadAt(LIGHT2_INDEX), getPayloadAt(LIGHT2_INDEX + 1)};
+    }
+    
+    /**
+     * Getter for the Light2 of the source node as double
+     * @return the light2 as double 
+     */
+    public final double getLight2AsDouble() {
+    	int intVal = getPayloadAt(LIGHT2_INDEX + 1) << 8 | getPayloadAt(LIGHT2_INDEX);
+    	return (double)intVal;
+    }
+    
+    /**
      * Gets the list of Neighbors.
      *
      * @return an HashMap filled with the neighbors and their weights.
      */
-    public final HashMap<NodeAddress, Byte> getNeighbors() {
-        HashMap<NodeAddress, Byte> map = new HashMap<>();
+    public final HashMap<NodeAddress, byte[]> getNeighbors() {
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
         int nNeig = getNeigborsSize();
         for (int i = 0; i < nNeig; i++) {
             map.put(getNeighborAddress(i),
-                    (byte) getLinkQuality(i));
+                    new byte[] {(byte)getLinkQuality(i), (byte)getRxCount(i), (byte)getTxCount(i)});
         }
         return map;
     }
@@ -285,13 +423,13 @@ public class ReportPacket extends BeaconPacket {
      * @return the packet itself
      */
     public final ReportPacket setNeighbors(
-            final HashMap<NodeAddress, Byte> map) {
+            final HashMap<NodeAddress, byte[]> map) {
         int i = 0;
-        for (Map.Entry<NodeAddress, Byte> entry : map.entrySet()) {
+        for (Map.Entry<NodeAddress, byte[]> entry : map.entrySet()) {
             setNeighborAddressAt(entry.getKey(), i);
-            setLinkQualityAt(entry.getValue(), i);
-            setRxCount((byte) 1, i);
-            setTxCount((byte) 2, i);
+            setLinkQualityAt(entry.getValue()[0], i);
+            setRxCount(entry.getValue()[1], i);
+            setTxCount(entry.getValue()[2], i);
             i++;
         }
         setNeighbors((byte) map.size());

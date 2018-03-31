@@ -155,7 +155,7 @@ public class FlowVisor extends ControlPlaneLayer {
         controllerMapping.entrySet().stream().forEach((set) -> {
             ReportPacket pkt = new ReportPacket(
                     Arrays.copyOf(data, data.length));
-            HashMap<NodeAddress, Byte> map = pkt.getNeighbors();
+            HashMap<NodeAddress, byte[]> map = pkt.getNeighbors();
             if (set.getValue().contains(pkt.getSrc())) {
                 boolean mod = false;
                 final int numNeigh = pkt.getNeigborsSize();

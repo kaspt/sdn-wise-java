@@ -19,6 +19,8 @@ package com.github.sdnwiselab.sdnwise.packet;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -33,16 +35,178 @@ public final class ReportPacketTest {
      * Test of toByteArray method, of class ReportPacket.
      */
     @Test
-    public void testToByteArray() {
+    public void testToByteArray01() {
         ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
                 new NodeAddress("0.0"), 2, 1);
-        HashMap<NodeAddress, Byte> map = new HashMap<>();
-        map.put(new NodeAddress("0.3"), (byte) 1);
-        map.put(new NodeAddress("0.4"), (byte) 2);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
         instance.setNeighbors(map);
         String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
-                + " 3, 1, 1, 2, 0, 4, 2, 1, 2]";
+                + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
         String result = Arrays.toString(instance.toByteArray());
         assertEquals(expResult, result);
+    }
+    
+    /**
+     * Test of toByteArray method, of class ReportPacket.
+     * Temperature
+     */
+    @Test
+    public void testToByteArray02() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        instance.setTemperature(new byte[] {13, 37});
+        instance.setNeighbors(map);
+        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 13, 37, 0, 0, 0, 0, 0, 0, 0, 2, 0,"
+                + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
+        String result = Arrays.toString(instance.toByteArray());
+        assertEquals(expResult, result);
+    }
+    
+    /**
+     * Test of toByteArray method, of class ReportPacket.
+     * Humidity
+     */
+    @Test
+    public void testToByteArray03() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        instance.setHumidity(new byte[] {13, 37});
+        instance.setNeighbors(map);
+        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 13, 37, 0, 0, 0, 0, 0, 2, 0,"
+                + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
+        String result = Arrays.toString(instance.toByteArray());
+        assertEquals(expResult, result);
+    }
+    
+    /**
+     * Test of toByteArray method, of class ReportPacket.
+     * Light1
+     */
+    @Test
+    public void testToByteArray04() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        instance.setLight1(new byte[] {13, 37});
+        instance.setNeighbors(map);
+        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 13, 37, 0, 0, 0, 2, 0,"
+                + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
+        String result = Arrays.toString(instance.toByteArray());
+        assertEquals(expResult, result);
+    }
+    
+    /**
+     * Test of toByteArray method, of class ReportPacket.
+     * Light2
+     */
+    @Test
+    public void testToByteArray05() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        instance.setLight2(new byte[] {13, 37});
+        instance.setNeighbors(map);
+        String expResult = "[1, 32, 0, 0, 0, 2, 2, 100, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 13, 37, 0, 2, 0,"
+                + " 3, 1, 42, 43, 0, 4, 2, 52, 53]";
+        String result = Arrays.toString(instance.toByteArray());
+        assertEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getTemperature, of class ReportPacket.
+     */
+    @Test
+    public void getTemperatureTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {13, 37};
+        instance.setTemperature(expResult);
+        instance.setNeighbors(map);
+        byte[] result = instance.getTemperature();
+        assertArrayEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getTemperature, of class ReportPacket.
+     * 
+     */
+    @Test
+    public void getTemperatureTest02() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {0, 0};
+        instance.setHumidity(new byte[] {13, 37});
+        instance.setNeighbors(map);
+        byte[] result = instance.getTemperature();
+        assertArrayEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getHumidity, of class ReportPacket.
+     */
+    @Test
+    public void getHumidity01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {13, 37};
+        instance.setHumidity(expResult);
+        instance.setNeighbors(map);
+        byte[] result = instance.getHumidity();
+        assertArrayEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getLight1, of class ReportPacket.
+     */
+    @Test
+    public void getLight1Test01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {13, 37};
+        instance.setLight1(expResult);
+        instance.setNeighbors(map);
+        byte[] result = instance.getLight1();
+        assertArrayEquals(expResult, result);
+    }
+    
+    /**
+     * Test of getLight2 of class ReportPacket.
+     */
+    @Test
+    public void getLight2Test01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {13, 37};
+        instance.setLight2(expResult);
+        instance.setNeighbors(map);
+        byte[] result = instance.getLight2();
+        assertArrayEquals(expResult, result);
     }
 }
