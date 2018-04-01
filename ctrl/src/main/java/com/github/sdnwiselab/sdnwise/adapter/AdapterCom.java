@@ -26,6 +26,7 @@ import gnu.io.UnsupportedCommOperationException;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.Map;
@@ -166,9 +167,9 @@ public class AdapterCom extends AbstractAdapter {
             try {
                 int len = Byte.toUnsignedInt(data[0]);
                 if (len <= NetworkPacket.MAX_PACKET_LENGTH) {
-                    out.write(startByte);
+                   // out.write(startByte);
                     out.write(data);
-                    out.write(stopByte);
+                   // out.write(stopByte);
                     out.flush();
                 }
             } catch (IOException ex) {

@@ -98,7 +98,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
     /**
      * First request delay.
      */
-    private static final int DELAY = 200;
+    private static final int DELAY = 5000;
     /**
      * Fields and lengths.
      */
@@ -124,7 +124,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
     /**
      * Timeout for a node request. Increase when using COOJA.
      */
-    protected static final int RESPONSE_TIMEOUT = 3000;
+    protected static final int RESPONSE_TIMEOUT = 5000;
     /**
      * Incoming queue.
      */
@@ -231,7 +231,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
             final List<AbstractAdapter> lower,
             final NetworkGraph network) {
         super("CTRL", lower, null);
-        sinkAddress = new NodeAddress("0.75");
+        sinkAddress = new NodeAddress("0.75"); //TODO adopt
         ControlPlaneLogger.setupLogger(getLayerShortName());
         myId = id;
         networkGraph = network;

@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.plaf.synth.SynthSeparatorUI;
+
 /**
  * This class models a Report packet.
  *
@@ -295,7 +297,7 @@ public class ReportPacket extends BeaconPacket {
      * @return the temperature as double in °C
      */
     public final double getTemperatureAsDouble() {
-    	int intVal = getPayloadAt(TEMPERATURE_INDEX + 1) << 8 | getPayloadAt(TEMPERATURE_INDEX);
+    	int intVal = getIntValFrom2Bytes(TEMPERATURE_INDEX);
     	return ((double)(intVal / 10.0 - 396)/10.0);
     }
     
@@ -329,7 +331,7 @@ public class ReportPacket extends BeaconPacket {
      * @return the humidity as double in %
      */
     public final double getHumidityAsDouble() {
-    	int intVal = getPayloadAt(HUMIDITY_INDEX + 1) << 8 | getPayloadAt(HUMIDITY_INDEX);
+    	int intVal = getIntValFrom2Bytes(HUMIDITY_INDEX);
     	return -4+0.0405*(double)intVal-2.8e-6*((double)intVal)*((double)intVal);
     }
     
@@ -363,8 +365,7 @@ public class ReportPacket extends BeaconPacket {
      * @return the light1 as double 
      */
     public final double getLight1AsDouble() {
-    	int intVal = getPayloadAt(LIGHT1_INDEX + 1) << 8 | getPayloadAt(LIGHT1_INDEX);
-    	return (double)intVal*10.0/7.0;
+    	return (double)getIntValFrom2Bytes(LIGHT1_INDEX)*10.0/7.0;
     }
     
     /**
@@ -397,8 +398,7 @@ public class ReportPacket extends BeaconPacket {
      * @return the light2 as double 
      */
     public final double getLight2AsDouble() {
-    	int intVal = getPayloadAt(LIGHT2_INDEX + 1) << 8 | getPayloadAt(LIGHT2_INDEX);
-    	return (double)intVal;
+    	return (double) getIntValFrom2Bytes(LIGHT2_INDEX);
     }
     
     /**
@@ -435,5 +435,13 @@ public class ReportPacket extends BeaconPacket {
         setNeighbors((byte) map.size());
         return this;
     }
+    
+    public final int getIntValFrom2Bytes(int index) {
+    	short msb = (short) (getPayloadAt(index + 1) & 0xFF);
+    	short lsb = (short) (getPayloadAt(index) & 0xFF);
+
+    	return  (0x00 << 32 | msb << 8) | lsb;
+    }
+
 
 }

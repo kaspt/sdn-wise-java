@@ -225,4 +225,133 @@ public final class ReportPacketTest {
         instance.setNeighbors(map);
         assertEquals(2, instance.getNeigborsSize());
     }
+    
+    /**
+     * Test of getTemperatureAsDouble
+     */
+    @Test
+    public void getTemperatureAsDoubleTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {61, 26};
+        instance.setTemperature(expResult);
+        instance.setNeighbors(map);
+        assertEquals(27.5, instance.getTemperatureAsDouble(), 0.2);
+    }
+    
+    /**
+     * Test of getHumidityAsDouble
+     */
+    @Test
+    public void getHumidityAsDoubleTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {19, 4};
+        instance.setHumidity(expResult);
+        instance.setNeighbors(map);
+        assertEquals(35.1, instance.getHumidityAsDouble(), 0.2);
+    }
+    
+    /**
+     * Test of getLight1AsDouble
+     */
+    @Test
+    public void getLight1AsDoubleTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {(byte)201, 1};
+        instance.setLight1(expResult);
+        instance.setNeighbors(map);
+        assertEquals(653.1, instance.getLight1AsDouble(), 0.3);
+    }
+    
+    /**
+     * Test of getLight2AsDouble
+     */
+    @Test
+    public void getLight2AsDoubleTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+        byte[] expResult = new byte[] {(byte)101, 2};
+        instance.setLight2(expResult);
+        instance.setNeighbors(map);
+        assertEquals(613, instance.getLight2AsDouble(), 0.2);
+    }
+    
+    /**
+     * Test of getLight2AsDouble
+     */
+    @Test
+    public void getIntValFrom2BytesTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+
+        instance.setLight1( new byte[] {(byte)101, (byte)2});
+        instance.setNeighbors(map);
+        assertEquals(613, instance.getIntValFrom2Bytes(6), 0.2);
+    }
+    
+    /**
+     * Test of getLight2AsDouble
+     */
+    @Test
+    public void getIntValFrom2BytesTest02() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+
+        instance.setLight1( new byte[] {(byte)201, (byte)1});
+        instance.setNeighbors(map);
+        assertEquals(457, instance.getIntValFrom2Bytes(6), 0.2);
+    }
+    
+    
+    /**
+     * Test of getLight2AsDouble
+     */
+    @Test
+    public void getIntValFrom2BytesTest03() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+
+        instance.setLight1( new byte[] {(byte)1, (byte)1});
+        instance.setNeighbors(map);
+        assertEquals(257, instance.getIntValFrom2Bytes(6), 0.2);
+    }
+    
+    /**
+     * Test of getLight2AsDouble
+     */
+    @Test
+    public void getIntValFrom2BytesTest05() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 2, (byte) 52, (byte) 53});
+
+        instance.setLight1( new byte[] {(byte)255, (byte)255});
+        instance.setNeighbors(map);
+        assertEquals(65535, instance.getIntValFrom2Bytes(6), 0.2);
+    }
 }
