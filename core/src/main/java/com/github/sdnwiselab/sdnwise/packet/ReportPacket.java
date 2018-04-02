@@ -167,7 +167,7 @@ public class ReportPacket extends BeaconPacket {
      */
     public final int getLinkQuality(final int i) {
         if (i <= MAX_NEIG) {
-            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RSSI_INDEX);
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RSSI_INDEX) & 0xFF;
         } else {
             throw new IllegalArgumentException(
                     "Index exceeds max number of neighbors");
@@ -442,6 +442,4 @@ public class ReportPacket extends BeaconPacket {
 
     	return  (0x00 << 32 | msb << 8) | lsb;
     }
-
-
 }

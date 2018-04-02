@@ -425,7 +425,6 @@ public abstract class AbstractController extends ControlPlaneLayer implements
      * @param data an incoming NetworkPacket
      */
     public final void managePacket(final NetworkPacket data) {
-
         switch (data.getTyp()) {
             case REPORT:
                 networkGraph.updateMap(new ReportPacket(data));

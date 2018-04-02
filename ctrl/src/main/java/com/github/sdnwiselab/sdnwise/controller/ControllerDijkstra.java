@@ -89,7 +89,6 @@ public final class ControllerDijkstra extends AbstractController {
             LinkedList<NodeAddress> p = null;
 
             if (srcNode != null && dstNode != null) {
-
                 if (!lastSource.equals(src) || lastModification
                         != network.getLastModification()) {
                     results.clear();

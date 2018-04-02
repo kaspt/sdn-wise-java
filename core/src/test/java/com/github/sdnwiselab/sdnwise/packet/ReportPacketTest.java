@@ -354,4 +354,34 @@ public final class ReportPacketTest {
         instance.setNeighbors(map);
         assertEquals(65535, instance.getIntValFrom2Bytes(6), 0.2);
     }
+    
+    /**
+     * Test of rssi values
+     */
+    @Test
+    public void getRssiTest01() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 5, (byte) 52, (byte) 53});
+
+        instance.setNeighbors(map);
+        assertEquals(5, instance.getLinkQuality(1));
+    }
+    
+    /**
+     * Test of rssi values
+     */
+    @Test
+    public void getRssiTest02() {
+        ReportPacket instance = new ReportPacket(1, new NodeAddress("0.2"),
+                new NodeAddress("0.0"), 2, 1);
+        HashMap<NodeAddress, byte[]> map = new HashMap<>();
+        map.put(new NodeAddress("0.3"), new byte[]{(byte) 1, (byte) 42, (byte) 43});
+        map.put(new NodeAddress("0.4"), new byte[]{(byte) 150, (byte) 52, (byte) 53});
+
+        instance.setNeighbors(map);
+        assertEquals(150, instance.getLinkQuality(1));
+    }
 }
