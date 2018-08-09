@@ -203,7 +203,7 @@ public class ReportPacket extends BeaconPacket {
      */
     public final int getRxCount(final int i) {
         if (i <= MAX_NEIG) {
-            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RX_COUNT_INDEX);
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + RX_COUNT_INDEX) & 0xFF;
         } else {
             throw new IllegalArgumentException(
                     "Index exceeds max number of neighbors");
@@ -239,7 +239,7 @@ public class ReportPacket extends BeaconPacket {
      */
     public final int getTxCount(final int i) {
         if (i <= MAX_NEIG) {
-            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + TX_COUNT_INDEX);
+            return getPayloadAt(NEIGH_INDEX + 1 + i* NEIGH_SIZE + TX_COUNT_INDEX) & 0xFF;
         } else {
             throw new IllegalArgumentException(
                     "Index exceeds max number of neighbors");
