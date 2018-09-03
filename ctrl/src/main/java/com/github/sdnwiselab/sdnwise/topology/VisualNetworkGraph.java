@@ -56,9 +56,9 @@ public final class VisualNetworkGraph extends NetworkGraph {
     }
 
     @Override
-    public void setupNode(final Node node, final int batt, final long now,
+    public void setupNode(final Node node, final int batt, final double temperature, final double humidity, final double light1, final double light2, final int rxCount, final int txCount, final long now,
             final int net, final NodeAddress addr) {
-        super.setupNode(node, batt, now, net, addr);
+        super.setupNode(node, batt, temperature, humidity, light1, light2, rxCount, txCount, now, net, addr);
         node.addAttribute("ui.label", node.getId());
         if (net < NetworkPacket.THRES) {
             node.changeAttribute("ui.style", "fill-color: rgb(0," + batt
@@ -70,8 +70,8 @@ public final class VisualNetworkGraph extends NetworkGraph {
     }
 
     @Override
-    public void updateNode(final Node node, final int batt, final long now) {
-        super.updateNode(node, batt, now);
+    public void updateNode(final Node node, final int batt,final double temperature, final double humidity, final double light1, final double light2, final int rxCount, final int txCount, final long now) {
+        super.updateNode(node, batt, temperature, humidity, light1, light2, rxCount, txCount, now);
         if (node.getAttribute("net") != null) {
             int net = node.getAttribute("net");
 

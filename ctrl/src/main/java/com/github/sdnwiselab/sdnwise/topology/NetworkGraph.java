@@ -19,9 +19,16 @@ package com.github.sdnwiselab.sdnwise.topology;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import com.github.sdnwiselab.sdnwise.packet.ReportPacket;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
+
+import gnu.io.RXTXCommDriver;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Observable;
 import java.util.Set;
+
+import org.graphstream.algorithm.BetweennessCentrality;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
@@ -183,7 +190,7 @@ public class NetworkGraph extends Observable {
      * @param newLen the weight of the edge
      */
     public void setupEdge(final Edge edge, final int newLen) {
-        edge.addAttribute("length", newLen);
+        updateEdge(edge, newLen);
     }
 
     /**
@@ -195,9 +202,17 @@ public class NetworkGraph extends Observable {
      * @param net Node network id
      * @param addr Node address
      */
-    public void setupNode(final Node node, final int batt, final long now,
+    public void setupNode(final Node node, final int batt, 
+    		final double temperature, final double humidity, final double light1, final double light2, final int rxCount, final int txCount,
+    		final long now,
             final int net, final NodeAddress addr) {
         node.addAttribute("battery", batt);
+        node.addAttribute("temperature", temperature);
+        node.addAttribute("humidity", humidity);
+        node.addAttribute("light1", light1);
+        node.addAttribute("light2", light2);
+        node.addAttribute("rxcount", rxCount);
+        node.addAttribute("txcount", txCount);
         node.addAttribute("lastSeen", now);
         node.addAttribute("net", net);
         node.addAttribute("nodeAddress", addr);
@@ -210,7 +225,50 @@ public class NetworkGraph extends Observable {
      * @param newLen the weight of the edge
      */
     public void updateEdge(final Edge edge, final int newLen) {
-        edge.addAttribute("length", newLen);
+    	
+    		// TODO some magic here
+    		double cost = 0;
+        try {
+        	//	System.out.println(edge.getNode0().getId() + " -----> " + edge.getNode1().getId());
+        //	System.out.println(edge.getNode0().getDegree() + edge.getNode1().getDegree());
+        	
+        		int totalTraffic = 0;
+        		for(Node node : graph.getEachNode()) {
+        			totalTraffic += (int)node.getAttribute("rxcount") + (int)node.getAttribute("txcount");
+        		}
+        	
+        		int rxCountNode0 = edge.getNode0().getAttribute("rxcount");
+        		int txCountNode0 = edge.getNode0().getAttribute("txcount");
+        		int rxCountNode1 = edge.getNode0().getAttribute("rxcount");
+        		int txCountNode1 = edge.getNode0().getAttribute("txcount");
+        		
+        		double trafficFraction0 = (double) ((rxCountNode0+txCountNode0)*1.0 / totalTraffic);
+        		double trafficFraction1 = (double) ((rxCountNode1+txCountNode1)*1.0 / totalTraffic);
+        		        		
+        		BetweennessCentrality bcb = new BetweennessCentrality();
+        		bcb.setUnweighted();
+    
+        		bcb.init(graph);
+        		bcb.compute();
+        		
+        		double centrality = 0;
+        		for(Node node : graph.getEachNode()) {
+        			centrality += (double)node.getAttribute("Cb");
+        		}
+        		double node0Centrality = (double)edge.getNode0().getAttribute("Cb")/centrality;
+        		double node1Centrality = (double)edge.getNode1().getAttribute("Cb")/centrality;
+
+        		cost = (trafficFraction0+trafficFraction1+node0Centrality+node1Centrality)/4;
+        		
+        		System.out.println("Cost: " + cost);
+        		if(cost < 0) {
+        			cost = 0;
+        		}
+        } catch(Exception e) {
+        		System.out.println(e);
+        }
+    	
+        edge.addAttribute("length", cost);
     }
 
     /**
@@ -227,6 +285,18 @@ public class NetworkGraph extends Observable {
 
         int net = packet.getNet();
         int batt = packet.getBattery();
+        double temperature = packet.getTemperatureAsDouble();
+        double humidity = packet.getHumidityAsDouble();
+        double light1 = packet.getLight1AsDouble();
+        double light2 = packet.getLight2AsDouble();
+        
+        int rxCount = 0;
+        int txCount = 0;
+        for(int i=0; i<packet.getNeigborsSize(); i++) {
+        		rxCount += packet.getRxCount(i);
+        		txCount += packet.getTxCount(i);
+        }
+       
         String nodeId = packet.getSrc().toString();
         String fullNodeId = net + "." + nodeId;
         NodeAddress addr = packet.getSrc();
@@ -235,25 +305,27 @@ public class NetworkGraph extends Observable {
 
         if (node == null) {
             node = addNode(fullNodeId);
-            setupNode(node, batt, now, net, addr);
+            setupNode(node, batt, temperature, humidity, light1, light2, rxCount, txCount, now, net, addr);
 
             for (int i = 0; i < packet.getNeigborsSize(); i++) {
                 NodeAddress otheraddr = packet.getNeighborAddress(i);
                 String other = net + "." + otheraddr.toString();
                 if (getNode(other) == null) {
                     Node tmp = addNode(other);
-                    setupNode(tmp, 0, now, net, otheraddr);
+                    setupNode(tmp, 0, 0, 0, 0, 0, packet.getTxCount(i), packet.getRxCount(i), now, net, otheraddr);
                 }
 
                 int newLen = MAX_BYTE - packet.getLinkQuality(i);
                 String edgeId = other + "-" + fullNodeId;
                 Edge edge = addEdge(edgeId, other, node.getId(), true);
+                
+                // TODO rxCount + txcount of both adjacent nodes
                 setupEdge(edge, newLen);
             }
             modified = true;
 
         } else {
-            updateNode(node, batt, now);
+            updateNode(node, batt, temperature, humidity, light1, light2, rxCount, txCount, now);
             Set<Edge> oldEdges = new HashSet<>();
             oldEdges.addAll(node.getEnteringEdgeSet());
 
@@ -262,20 +334,25 @@ public class NetworkGraph extends Observable {
                 String other = net + "." + otheraddr.toString();
                 if (getNode(other) == null) {
                     Node tmp = addNode(other);
-                    setupNode(tmp, 0, now, net, otheraddr);
+                    setupNode(tmp, 0, 0, 0, 0, 0, packet.getTxCount(i), packet.getRxCount(i), now, net, otheraddr);
                 }
 
                 int newLen = MAX_BYTE - packet.getLinkQuality(i);
 
                 String edgeId = other + "-" + fullNodeId;
                 Edge edge = getEdge(edgeId);
+
                 if (edge != null) {
+
+                   
                     oldEdges.remove(edge);
-                    int oldLen = edge.getAttribute("length");
-                    if (Math.abs(oldLen - newLen) > rssiResolution) {
+                   // updateEdge(edge, 1);
+//                    double oldLen = edge.getAttribute("length");
+//                    if (Math.abs(oldLen - newLen) > rssiResolution) {
+//                    	// TODO rxCount + txcount of both adjacent nodes
                         updateEdge(edge, newLen);
                         modified = true;
-                    }
+//                    }
                 } else {
                     Edge tmp = addEdge(edgeId, other, node.getId(), true);
                     setupEdge(tmp, newLen);
@@ -305,9 +382,15 @@ public class NetworkGraph extends Observable {
      * @param batt residual charge of the node
      * @param now last time time the node was alive
      */
-    public void updateNode(final Node node, final int batt, final long now) {
+    public void updateNode(final Node node, final int batt, final double temperature, final double humidity, final double light1, final double light2, final int rxCount, final int txCount, final long now) {
         node.addAttribute("battery", batt);
         node.addAttribute("lastSeen", now);
+        node.addAttribute("temperature", temperature);
+        node.addAttribute("humidity", humidity);
+        node.addAttribute("light1", light1);
+        node.addAttribute("light2", light2);
+        node.addAttribute("rxcount", rxCount);
+        node.addAttribute("txcount", txCount);
     }
 
     /**
