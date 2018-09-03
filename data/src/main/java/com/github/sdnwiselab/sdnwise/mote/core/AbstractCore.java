@@ -1164,6 +1164,7 @@ public abstract class AbstractCore {
      * @param packet the incoming request packet
      */
     protected final void rxRequest(final RequestPacket packet) {
+    	System.out.println("Request->Controller " + Arrays.toString(packet.toByteArray()));
         controllerTX(packet);
     }
 

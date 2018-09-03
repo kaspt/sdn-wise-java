@@ -231,7 +231,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
             final List<AbstractAdapter> lower,
             final NetworkGraph network) {
         super("CTRL", lower, null);
-        sinkAddress = new NodeAddress("0.75"); //TODO adopt
+        sinkAddress = new NodeAddress("0.1"); //TODO adopt
         ControlPlaneLogger.setupLogger(getLayerShortName());
         myId = id;
         networkGraph = network;
@@ -432,6 +432,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
 
             case REQUEST:
                 RequestPacket req = new RequestPacket(data);
+                System.out.println(Arrays.toString(req.toByteArray()));
                 NetworkPacket p = putInRequestCache(req);
                 if (p != null) {
                     manageRoutingRequest(req, p);
