@@ -51,7 +51,7 @@ class InetAdapterPacketTest {
     }
 
     @org.junit.jupiter.api.Test
-    void getInetAdress() {
+    void getInetAdress() throws Exception{
         InetAddress res = dut.getInetAdress();
         assertEquals(clientadr, res);
 
