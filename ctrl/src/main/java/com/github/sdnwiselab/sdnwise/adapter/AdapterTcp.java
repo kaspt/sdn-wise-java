@@ -188,6 +188,7 @@ public class AdapterTcp extends AbstractAdapter {
     /**
      * Models a TCP server.
      */
+
     private class InternalTcpElementServer extends InternalTcpElement {
 
         /**
