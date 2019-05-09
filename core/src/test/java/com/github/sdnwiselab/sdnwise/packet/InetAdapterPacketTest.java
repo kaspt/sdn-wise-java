@@ -34,8 +34,6 @@ class InetAdapterPacketTest {
         dut = new InetAdapterPacket(payload, clientadr, testPort);
     }
 
-
-
     @org.junit.jupiter.api.Test
     void toByteArray() {
     }
