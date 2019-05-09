@@ -1,10 +1,11 @@
 package com.github.sdnwiselab.sdnwise.packet;
 
-import javax.naming.OperationNotSupportedException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.MAX_PACKET_LENGTH;
 
 /**
  * This class represents a packet with a socket ID.
@@ -18,17 +19,20 @@ public class InetAdapterPacket {
      */
     public static final int DFLT_HDR_LEN = 1,
             DFLT_INET6ADDRES_LEN = 16,
-            DFLT_PORT_LEN = 2;
+            PORT_LEN = 2;
 
-    public static final byte HEADER_LENGTH =
-            DFLT_INET6ADDRES_LEN + DFLT_HDR_LEN + DFLT_PORT_LEN;
+    public static final byte HEADER_LENGTH = 21;
+
+    public static final int PORTMAX_SIZE = 65535;
 
     /**
      * The indexes of the different fields in the packet.
      */
-    public static final int HEADER_LENGTH_INDEX = 0,
-            PORT_INDEX = 1,
-            ADDRESS_INDEX = 2;
+    public static final int HLEN_INDEX = 1,
+            LEN_INDEX = 2,
+            PORT_INDEX = 3,
+            IPADR_INDEX = 5,
+            PAYLOAD_INDEX = (HEADER_LENGTH);
 
     private final byte[] data;
 
@@ -45,37 +49,50 @@ public class InetAdapterPacket {
     }
 
     private void setHeaderLength(byte header){
-        data[HEADER_LENGTH_INDEX] = header;
+        data[HLEN_INDEX] = header;
     }
 
     private void setInetAddress(InetAddress adr){
         byte[] tmp = adr.getAddress();
-        System.arraycopy(tmp, 0,data, ADDRESS_INDEX, tmp.length );
+        System.arraycopy(tmp, 0,data, IPADR_INDEX, tmp.length );
     }
 
     public InetAddress getInetAdress() throws UnknownHostException {
-        byte[] addrbytearr = new byte[DFLT_INET6ADDRES_LEN];
-        System.arraycopy(data, ADDRESS_INDEX, data, 0, DFLT_INET6ADDRES_LEN);
-        InetAddress adr = InetAddress.getByAddress(addrbytearr);
-        return adr;
+        byte[] addarr =  Arrays.copyOfRange(data,
+                IPADR_INDEX,
+                DFLT_INET6ADDRES_LEN + IPADR_INDEX);
+        return InetAddress.getByAddress(addarr);
     }
 
-    private int getPayloadIndex(){
-        return (HEADER_LENGTH_INDEX +1);
-    }
 
-    public byte[] setPayload(byte[] payload) {
+    public InetAdapterPacket setPayload(byte[] payload) {
         if(payload.length + HEADER_LENGTH > data.length){
             throw new IllegalArgumentException("payload length is bigger " +
                     "than data length");
         }
-        System.arraycopy(payload, 0, data, getPayloadIndex(), payload.length);
-        return Arrays.copyOfRange(data, getPayloadIndex(), data.length);
+        System.arraycopy(payload, 0, data, PAYLOAD_INDEX, payload.length);
+        setLen((byte)(payload.length + HEADER_LENGTH));
+        return this;
     }
 
-    public byte[] getPayload(){
+    public final byte[] getPayload(){
+        return Arrays.copyOfRange(data, HEADER_LENGTH, getLen());
+    }
 
-        return data;
+    /**
+     * Sets the length of the message.
+     *
+     * @param value an integer representing the length of the message.
+     * @return the packet itself
+     */
+    public final InetAdapterPacket setLen(final byte value) {
+        int v = Byte.toUnsignedInt(value);
+        if (v <= MAX_PACKET_LENGTH && v > 0) {
+            data[LEN_INDEX] = value;
+        } else {
+            throw new IllegalArgumentException("Invalid length: " + v);
+        }
+        return this;
     }
 
     /**
@@ -92,14 +109,16 @@ public class InetAdapterPacket {
      *
      * @param port
      */
-    public void setPort(int port){
-        byte[] portarr = ByteBuffer.allocate(DFLT_PORT_LEN).putInt(port).array();
-        data[PORT_INDEX] = portarr[0];
-        data[PORT_INDEX+1] = portarr[1];
+    public void setPort(int port) {
+        if( (0 > port) || (port > 65535)){
+            throw new IllegalArgumentException("Port is out of range, Port:" + port);
+        }
+        data[PORT_INDEX] = (byte) (port >> Byte.SIZE);
+        data[PORT_INDEX + 1] = (byte) (port);
     }
 
     public int getPort(){
-        return  ((data[PORT_INDEX] & 0xff) << Byte.SIZE) | (data[PORT_INDEX+1] & 0xff);
+        return  ((data[PORT_INDEX] & 0xff) << Byte.SIZE) | (data[PORT_INDEX +1] & 0xff);
     }
 
     /**
@@ -113,18 +132,18 @@ public class InetAdapterPacket {
     }
 
     /**
-     * Returns a byte array representation of the NetworkPacket.
+     * Returns a byte array representation of the InetAdaperPacket.
      *
-     * @return a byte array representation of the NetworkPacket
+     * @return a byte array representation of the InetAdaperPacket
      */
     public final byte[] toByteArray() {
         return Arrays.copyOf(data, getLen());
     }
 
     /**
-     * Returns an int array representation of the NetworkPacket.
+     * Returns an int array representation of the InetAdaperPacket.
      *
-     * @return a int array representation of the NetworkPacket
+     * @return a int array representation of the InetAdaperPacket
      */
     public final int[] toIntArray() {
         int[] tmp = new int[getLen()];
