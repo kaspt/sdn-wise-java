@@ -1,5 +1,6 @@
 package com.github.sdnwiselab.sdnwise.adaptation;
 
+import static junit.framework.TestCase.fail;
 import static org.mockito.Mockito.*;
 
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
@@ -58,7 +59,7 @@ public class AdaptationWebTest {
 
     @Test
     public void testAda_sendMessageToSocket(){
-
+        fail("Not yet implemented");
     }
 
 

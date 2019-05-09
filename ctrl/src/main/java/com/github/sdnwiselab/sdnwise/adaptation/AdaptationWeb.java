@@ -2,6 +2,7 @@ package com.github.sdnwiselab.sdnwise.adaptation;
 
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
+import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,16 +23,6 @@ public class AdaptationWeb extends ControlPlaneLayer {
     }
 
 
-    private byte[] createSocketMessage(Object arg){
-        //Todo separate node response and the socket ID.
-        return (byte[])arg;
-    }
-
-    private byte[] createUpperMessage(Object arg){
-        //Todo Add Socket ID to the message.
-        return (byte[])arg;
-    }
-
     @Override
     protected void setupLayer() {
         //TODO Open the sockets.
@@ -44,7 +35,10 @@ public class AdaptationWeb extends ControlPlaneLayer {
         for (AbstractAdapter adapter : getUpper()) {
             if (o.equals(adapter)) {
                 log(Level.INFO, "\u2193" + Arrays.toString((byte[]) arg));
-                byte[] message = createSocketMessage(arg);
+
+                byte[] message = new byte[3];//createSocketMessage(arg);
+
+
                 for (AbstractAdapter ad : getLower()) {
                     //Todo Find correct lower Adapter/Socket
                     found = true;
@@ -59,7 +53,7 @@ public class AdaptationWeb extends ControlPlaneLayer {
                 if (o.equals(adapter)) {
                     log(Level.INFO, "\u2191" + Arrays.toString((byte[]) arg));
                     // Todo identify socket and forward the info
-                    byte[] message = createUpperMessage(arg);
+                    byte[] message = new byte[3];//createUpperMessage(arg);
                     for (AbstractAdapter ad : getUpper()) {
                         ad.send(message);
                     }
