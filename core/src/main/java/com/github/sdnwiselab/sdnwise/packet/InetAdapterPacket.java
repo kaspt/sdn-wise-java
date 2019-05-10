@@ -43,13 +43,15 @@ public class InetAdapterPacket {
 
     public InetAdapterPacket(byte[] payload,
                              InetAddress clientAddress,
-                             int port){
+                             int port,
+                             byte Net_id){
 
         this.data = new byte[HEADER_LENGTH + payload.length];
         setHeaderLength(HEADER_LENGTH);
         setPort(port);
         setInetAddress(clientAddress);
         setPayload(payload);
+        setNet(Net_id);
     }
 
     public InetAdapterPacket(byte[] d){
@@ -70,6 +72,9 @@ public class InetAdapterPacket {
                 setLen(array[LEN_INDEX]);
                 setHeaderLength(HEADER_LENGTH);
                 setPort(array[PORT_INDEX], array[PORT_INDEX + 1]);
+                setInetAddress(Arrays.copyOfRange(array,
+                        IPADR_INDEX,
+                        DFLT_INET6ADDRES_LEN + IPADR_INDEX));
                 setPayload(Arrays.copyOfRange(array, HEADER_LENGTH,
                         getLen()));
             } else {
@@ -97,6 +102,17 @@ public class InetAdapterPacket {
         byte[] tmp = adr.getAddress();
         System.arraycopy(tmp, 0,data, IPADR_INDEX, tmp.length );
     }
+
+    public void setInetAddress(final byte[] adr){
+        if(adr.length == DFLT_INET6ADDRES_LEN){
+            System.arraycopy(adr, 0, data, IPADR_INDEX, adr.length);
+        }else {
+            throw new IllegalArgumentException(
+                    "address length is invalid. (length="
+                    + adr.length + ")");
+        }
+    }
+
 
     public InetAddress getInetAdress() throws UnknownHostException {
         byte[] addarr =  Arrays.copyOfRange(data,
