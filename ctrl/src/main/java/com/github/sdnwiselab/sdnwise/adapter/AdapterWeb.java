@@ -1,11 +1,12 @@
 package com.github.sdnwiselab.sdnwise.adapter;
 
+import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import scala.util.parsing.combinator.testing.Str;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -23,6 +24,16 @@ public class AdapterWeb extends AbstractAdapter{
      * TCP port of the adapter.
      */
     private final int port;
+
+    /**
+     * Backlog number of the ServerSocket.
+     */
+    private final int backlog;
+
+
+    private final InetAddress hostadress;
+
+
     /**
      * Manages TCP connections.
      */
@@ -40,10 +51,13 @@ public class AdapterWeb extends AbstractAdapter{
      *
      * @param conf contains the serial port configuration data.
      */
-    public AdapterWeb(final Map<String, String> conf) {
+    public AdapterWeb(final Map<String, String> conf)
+            throws UnknownHostException {
         isServer = Boolean.parseBoolean(conf.get("IS_SERVER"));
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
+        backlog = 5;
+        hostadress = InetAddress.getByName(ip);
     }
 
     @Override
@@ -104,6 +118,7 @@ public class AdapterWeb extends AbstractAdapter{
 
         @Override
         public final void update(final Observable o, final Object arg) {
+            System.out.println(arg);
             setChanged();
             notifyObservers(arg);
         }
@@ -158,7 +173,6 @@ public class AdapterWeb extends AbstractAdapter{
     /**
      * Models a TCP server.
      */
-
     private class InternalTcpElementServer extends InternalTcpElement {
 
         /**
@@ -179,7 +193,7 @@ public class AdapterWeb extends AbstractAdapter{
         @Override
         public void run() {
             try {
-                serverSocket = new ServerSocket(port);
+                serverSocket = new ServerSocket(port, backlog, hostadress);
             } catch (IOException e) {
                 throw new UnsupportedOperationException("Cannot open port "
                         + port, e);
@@ -196,7 +210,8 @@ public class AdapterWeb extends AbstractAdapter{
                             "Error accepting client connection", e);
                 }
                 clientSockets.add(clientSocket);
-                InternalTcpElementServer.WorkerRunnable wr = new InternalTcpElementServer.WorkerRunnable(clientSocket);
+                InternalTcpElementServer.WorkerRunnable wr =
+                        new InternalTcpElementServer.WorkerRunnable(clientSocket);
                 wr.addObserver(this);
                 new Thread(wr).start();
             }
@@ -215,11 +230,22 @@ public class AdapterWeb extends AbstractAdapter{
 
         @Override
         public void send(final byte[] data) {
+
+            // Todo Find first dont iterate over the hole list
             clientSockets.stream().forEach((sck) -> {
+                //TODO find correct socket.
+                InetAdapterPacket dataPacket = new InetAdapterPacket(data);
+
+                InetSocketAddress remoteaddres =
+                        (InetSocketAddress)sck.getRemoteSocketAddress();
                 try {
-                    OutputStream out = sck.getOutputStream();
-                    DataOutputStream dos = new DataOutputStream(out);
-                    dos.write(data);
+                    if(dataPacket.getInetAdress().equals(remoteaddres.getAddress())) {
+                        if(dataPacket.getPort() == remoteaddres.getPort()){
+                            OutputStream out = sck.getOutputStream();
+                            DataOutputStream dos = new DataOutputStream(out);
+                            dos.write(data);
+                        }
+                    };
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());
                     removableSockets.add(sck);
@@ -257,9 +283,27 @@ public class AdapterWeb extends AbstractAdapter{
                     InputStream in = clientSocket.getInputStream();
                     DataInputStream dis = new DataInputStream(in);
                     while (!isStopped()) {
-                        byte[] data = new NetworkPacket(dis).toByteArray();
+
+                        int len = Byte.toUnsignedInt(dis.readByte());
+                        byte[] tmpData;
+                        if(len > 0) {
+                            tmpData = new byte[len];
+                            dis.readFully(tmpData, 1, len - 1);
+                        }else {
+                            throw new IllegalArgumentException(
+                                    "received packet has illegal length");
+                        }
+
+                        InetSocketAddress cliadr =
+                                (InetSocketAddress)clientSocket.getRemoteSocketAddress();
+
+                        InetAdapterPacket data = new InetAdapterPacket(tmpData,
+                                cliadr.getAddress(),
+                                cliadr.getPort(),
+                                (byte) 64);
+
                         setChanged();
-                        notifyObservers(data);
+                        notifyObservers(data.toByteArray());
                     }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());

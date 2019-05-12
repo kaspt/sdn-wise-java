@@ -102,6 +102,11 @@ class InetAdapterPacketTest {
         validate_all();
     }
 
+    /**
+     * Check the different parameters of the Packet
+     *
+     * @throws Exception
+     */
     private void validate_all() throws Exception{
         assertEquals(exp_results.exp_port, dut.getPort());
         assertEquals(exp_results.exp_len, dut.getLen());

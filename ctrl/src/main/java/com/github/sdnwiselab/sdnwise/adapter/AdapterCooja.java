@@ -19,6 +19,7 @@ package com.github.sdnwiselab.sdnwise.adapter;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -71,6 +72,11 @@ public class AdapterCooja extends AbstractAdapter {
         isServer = Boolean.parseBoolean(conf.get("IS_SERVER"));
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
+    }
+
+
+    public boolean identifyAdapter(InetAddress arg, int port){
+return false;
     }
 
     @Override

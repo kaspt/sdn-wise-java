@@ -1,9 +1,12 @@
 package com.github.sdnwiselab.sdnwise.adaptation;
 
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterWeb;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
@@ -19,7 +22,7 @@ public class AdaptationWeb extends ControlPlaneLayer {
      */
     public AdaptationWeb(List<AbstractAdapter> lower,
                          List<AbstractAdapter> upper) {
-        super("ADAWEB", lower, upper);
+        super("INETADA", lower, upper);
     }
 
 
@@ -36,26 +39,34 @@ public class AdaptationWeb extends ControlPlaneLayer {
             if (o.equals(adapter)) {
                 log(Level.INFO, "\u2193" + Arrays.toString((byte[]) arg));
 
-                byte[] message = new byte[3];//createSocketMessage(arg);
 
+
+                InetAdapterPacket message = new InetAdapterPacket((byte[]) arg);
+                InetAddress address;
+                try {
+                    address = message.getInetAdress();
+                }catch (UnknownHostException e){
+                    // TODO Error handling
+                    return;
+                }
 
                 for (AbstractAdapter ad : getLower()) {
+                    AdapterWeb adweb =  (AdapterWeb) ad;
+
                     //Todo Find correct lower Adapter/Socket
                     found = true;
-                    ad.send(message);
+                    ad.send(message.toByteArray());
                 }
                 break;
             }
         }
-        // Send message to upper layer
+        // Send message to upper layer (FWD)
         if (!found) {
             for (AbstractAdapter adapter : getLower()) {
                 if (o.equals(adapter)) {
                     log(Level.INFO, "\u2191" + Arrays.toString((byte[]) arg));
-                    // Todo identify socket and forward the info
-                    byte[] message = new byte[3];//createUpperMessage(arg);
                     for (AbstractAdapter ad : getUpper()) {
-                        ad.send(message);
+                        ad.send((byte[]) arg);
                     }
                     break;
                 }
