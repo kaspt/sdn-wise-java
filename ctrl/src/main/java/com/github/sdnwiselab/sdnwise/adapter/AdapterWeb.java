@@ -2,19 +2,23 @@ package com.github.sdnwiselab.sdnwise.adapter;
 
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
-import scala.util.parsing.combinator.testing.Str;
 
-import javax.naming.OperationNotSupportedException;
 import java.io.*;
 import java.net.*;
+import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.logging.Level;
 
 public class AdapterWeb extends AbstractAdapter{
     /**
-     * Destination ip address.
+     * Destination ip address. For when the adapter acts as client.
      */
     private final String ip;
+
+    private final byte[] ip_bytearr;
+
+    private final byte ipVersion;
+
     /**
      * Boolean used to set the behaviour of the adapter. The adapter can act as
      * a server or a client.
@@ -29,10 +33,6 @@ public class AdapterWeb extends AbstractAdapter{
      * Backlog number of the ServerSocket.
      */
     private final int backlog;
-
-
-    private final InetAddress hostadress;
-
 
     /**
      * Manages TCP connections.
@@ -57,7 +57,15 @@ public class AdapterWeb extends AbstractAdapter{
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
         backlog = 5;
-        hostadress = InetAddress.getByName(ip);
+        ip_bytearr = InetAddress.getByName(ip).getAddress();
+        if (InetAddress.getByName(ip) instanceof Inet4Address){
+            ipVersion = (byte) 4;
+        }else if (InetAddress.getByName(ip) instanceof Inet6Address){
+            ipVersion = (byte) 6;
+        }else {
+            throw new IllegalArgumentException("is not a ip address "
+                    + ip );
+        }
     }
 
     @Override
@@ -87,6 +95,16 @@ public class AdapterWeb extends AbstractAdapter{
         if (isActive()) {
             tcpElement.send(data);
         }
+    }
+
+
+    @Override
+    public void update(final Observable o, final Object arg) {
+        InetAdapterPacket packet = ((InetAdapterPacket)arg)
+                .setSdnWiseIPVersion(this.ipVersion)
+                .setSdnWisePort(this.port)
+                .setSdnWiseAddress(this.ip_bytearr);
+        super.update(o, arg);
     }
 
     /**
@@ -193,7 +211,9 @@ public class AdapterWeb extends AbstractAdapter{
         @Override
         public void run() {
             try {
-                serverSocket = new ServerSocket(port, backlog, hostadress);
+                serverSocket = new ServerSocket(port,
+                        backlog,
+                        InetAddress.getByName(ip));
             } catch (IOException e) {
                 throw new UnsupportedOperationException("Cannot open port "
                         + port, e);
@@ -230,22 +250,19 @@ public class AdapterWeb extends AbstractAdapter{
 
         @Override
         public void send(final byte[] data) {
-
-            // Todo Find first dont iterate over the hole list
+            // Todo Find first, don't iterate over the hole list
             clientSockets.stream().forEach((sck) -> {
-                //TODO find correct socket.
-                InetAdapterPacket dataPacket = new InetAdapterPacket(data);
-
-                InetSocketAddress remoteaddres =
+                InetAdapterPacket packet = new InetAdapterPacket(data);
+                InetSocketAddress remoteaddress =
                         (InetSocketAddress)sck.getRemoteSocketAddress();
                 try {
-                    if(dataPacket.getInetAdress().equals(remoteaddres.getAddress())) {
-                        if(dataPacket.getPort() == remoteaddres.getPort()){
-                            OutputStream out = sck.getOutputStream();
-                            DataOutputStream dos = new DataOutputStream(out);
-                            dos.write(data);
-                        }
-                    };
+                    if(Arrays.equals(packet.getClientAddress(),
+                            remoteaddress.getAddress().getAddress())
+                            && (packet.getClientPort()== remoteaddress.getPort())){
+                        OutputStream out = sck.getOutputStream();
+                        DataOutputStream dos = new DataOutputStream(out);
+                        dos.write(data);
+                    }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());
                     removableSockets.add(sck);
@@ -285,10 +302,10 @@ public class AdapterWeb extends AbstractAdapter{
                     while (!isStopped()) {
 
                         int len = Byte.toUnsignedInt(dis.readByte());
-                        byte[] tmpData;
+                        byte[] payload;
                         if(len > 0) {
-                            tmpData = new byte[len];
-                            dis.readFully(tmpData, 1, len - 1);
+                            payload = new byte[len];
+                            dis.readFully(payload, 0, len );
                         }else {
                             throw new IllegalArgumentException(
                                     "received packet has illegal length");
@@ -297,13 +314,22 @@ public class AdapterWeb extends AbstractAdapter{
                         InetSocketAddress cliadr =
                                 (InetSocketAddress)clientSocket.getRemoteSocketAddress();
 
-                        InetAdapterPacket data = new InetAdapterPacket(tmpData,
-                                cliadr.getAddress(),
-                                cliadr.getPort(),
-                                (byte) 64);
+                        byte clientIpvers;
+                        if (cliadr.getAddress() instanceof Inet4Address){
+                            clientIpvers = (byte) 4;
+                        }else if(cliadr.getAddress() instanceof Inet6Address){
+                            clientIpvers = (byte)6;
+                        }else {
+                            throw new InvalidParameterException("unknown typ of client address");
+                        }
 
+                        InetAdapterPacket data = new InetAdapterPacket(payload,
+                                (byte) 64)
+                                .setClientAddress(cliadr.getAddress().getAddress())
+                                .setClientPort(cliadr.getPort())
+                                .setClientIPVersion(clientIpvers);
                         setChanged();
-                        notifyObservers(data.toByteArray());
+                        notifyObservers(data);
                     }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());

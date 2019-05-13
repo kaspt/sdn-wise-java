@@ -1,15 +1,7 @@
 package com.github.sdnwiselab.sdnwise.packet;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.util.Random;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,93 +17,108 @@ class InetAdapterPacketTest {
 
     private class Exp_Results {
 
-        public Exp_Results() throws Exception{
-            this.exp_ipaddress = InetAddress.getByName(exp_ipaddress_str);
-            exp_payload = new byte[]{(byte)0x55, (byte)0x0f, (byte)0x10 };
-            this.exp_len =  exp_payload.length + InetAdapterPacket.HEADER_LENGTH;
+        private final String sdnwiseIpAddr_str = "fe80::250:56ff:fec0:9";
+
+        private final String clientIPaddr_str = "fe80::250:564f:fec0:6";
+
+        public Exp_Results() {
+            try {
+
+                this.exp_ipaddress = InetAddress.getByName(sdnwiseIpAddr_str);
+
+                this.clientIpaddr = InetAddress.getByName(clientIPaddr_str)
+                        .getAddress();
+                this.clientPort = 8888;
+                this.sdnWiseIPaddr = InetAddress.getByName(sdnwiseIpAddr_str)
+                        .getAddress();
+            }catch (Exception e){
+                fail("can't initialize test class");
+            }
+            this.sdnWisePort = 12344;
+            payload = new byte[]{(byte)0x01, (byte)0x02, (byte)0x03 };
+            this.exp_len =  payload.length + InetAdapterPacket.HEADER_LENGTH;
         }
 
-        public byte[] exp_payload;
+        public byte NET_ID = 64;
 
-        private final String exp_ipaddress_str = "fe80::250:56ff:fec0:8";
+        public byte[] payload;
+
+        public byte clientIPvers = (byte)6;
+
+        public byte[] clientIpaddr;
+
+        public int clientPort;
+
+        public byte sdnWiseIPvers = (byte)6;
+
+        public byte[] sdnWiseIPaddr;
+
+        public int sdnWisePort;
 
         public InetAddress exp_ipaddress;
 
-        public int exp_port = 12345;
-
         public int exp_len;
 
-        public byte exp_NET = 64;
     }
 
     @org.junit.jupiter.api.BeforeEach
-    void setUp() throws Exception
+    void setUp()
     {
         exp_results = new Exp_Results();
-        dut = new InetAdapterPacket(exp_results.exp_payload,
-                exp_results.exp_ipaddress,
-                exp_results.exp_port,
-                exp_results.exp_NET);
+        dut = new InetAdapterPacket(exp_results.payload, exp_results.NET_ID)
+                .setClientIPVersion(exp_results.clientIPvers)
+                .setClientAddress(exp_results.clientIpaddr)
+                .setClientPort(exp_results.clientPort)
+                .setSdnWiseIPVersion(exp_results.sdnWiseIPvers)
+                .setSdnWiseAddress(exp_results.sdnWiseIPaddr)
+                .setSdnWisePort(exp_results.sdnWisePort);
     }
-
-   /* static Stream<Arguments> resources(){
-        byte[] temp = new byte[] { (byte)0x55, (byte)0x0f, (byte)0x10 };
-        return Stream.of(
-                Arguments.of(1234, new byte[] { (byte)0x55, (byte)0x0f})
-        );
-    }*/
 
 
     @org.junit.jupiter.api.Test
-    void getPayload() {
-        byte[] res = dut.getPayload();
-        assertArrayEquals(res, getTestPayload());
-    }
-
-    @org.junit.jupiter.api.Test
-    void getInetAdress() throws Exception{
-        InetAddress res = dut.getInetAdress();
-        assertEquals(exp_results.exp_ipaddress, res);
-    }
-
-    @org.junit.jupiter.api.Test
-    void getLen() {
-        int res = dut.getLen();
-        assertEquals(exp_results.exp_len, res);
-    }
-
-    @org.junit.jupiter.api.Test
-    void getPort() {
-        int res = dut.getPort();
-        assertEquals(exp_results.exp_port, res);
-    }
-
-    @org.junit.jupiter.api.Test
-    void setPort() {
+    void setClientPropteries() {
         Random rand = new Random();
         int  expected = rand.nextInt(65535);
-        dut.setPort(expected);
-        assertEquals(expected, dut.getPort());
+        exp_results.clientPort = expected;
+        dut.setClientPort(expected);
+        assert_all();
     }
 
     @org.junit.jupiter.api.Test
     void toByteArray() throws Exception{
         byte[] res =  dut.toByteArray();
-        validate_all();
+        assert_all();
         dut = new InetAdapterPacket(res);
-        validate_all();
+        assert_all();
     }
 
-    /**
-     * Check the different parameters of the Packet
-     *
-     * @throws Exception
-     */
-    private void validate_all() throws Exception{
-        assertEquals(exp_results.exp_port, dut.getPort());
-        assertEquals(exp_results.exp_len, dut.getLen());
-        assertArrayEquals(exp_results.exp_payload, dut.getPayload());
-        assertEquals(exp_results.exp_ipaddress, dut.getInetAdress());
+    void assert_all(){
+        assert_clientProperties();
+        assert_sdnWiseProperties();
+        assert_Len();
+        assert_Payload();
     }
+
+    void assert_clientProperties() {
+        assertArrayEquals(exp_results.clientIpaddr, dut.getClientAddress());
+        assertEquals(exp_results.clientIPvers, dut.getIpClientIPVersion());
+        assertEquals(exp_results.clientPort, dut.getClientPort());
+    }
+
+    void assert_sdnWiseProperties() {
+        assertArrayEquals(exp_results.sdnWiseIPaddr, dut.getSdnWiseAddress());
+        assertEquals(exp_results.sdnWiseIPvers, dut.getSdnWiseIPVersion());
+        assertEquals(exp_results.sdnWisePort, dut.getSdnWisePort());
+    }
+
+    void assert_Len() {
+        assertEquals(exp_results.exp_len, dut.getLen());
+    }
+
+    void assert_Payload() {
+        byte[] pay = dut.getPayload();
+        assertArrayEquals(exp_results.payload, dut.getPayload());
+    }
+
 
 }

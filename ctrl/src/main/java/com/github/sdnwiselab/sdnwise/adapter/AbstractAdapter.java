@@ -88,7 +88,7 @@ public abstract class AbstractAdapter extends Observable implements Observer {
     public abstract void send(byte[] data);
 
     @Override
-    public final void update(final Observable o, final Object arg) {
+    public void update(final Observable o, final Object arg) {
         setChanged();
         notifyObservers(arg);
     }

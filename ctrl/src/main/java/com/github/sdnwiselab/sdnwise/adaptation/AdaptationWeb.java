@@ -38,24 +38,17 @@ public class AdaptationWeb extends ControlPlaneLayer {
         for (AbstractAdapter adapter : getUpper()) {
             if (o.equals(adapter)) {
                 log(Level.INFO, "\u2193" + Arrays.toString((byte[]) arg));
-
-
-
                 InetAdapterPacket message = new InetAdapterPacket((byte[]) arg);
-                InetAddress address;
-                try {
-                    address = message.getInetAdress();
-                }catch (UnknownHostException e){
-                    // TODO Error handling
-                    return;
-                }
+
 
                 for (AbstractAdapter ad : getLower()) {
                     AdapterWeb adweb =  (AdapterWeb) ad;
 
+
                     //Todo Find correct lower Adapter/Socket
                     found = true;
                     ad.send(message.toByteArray());
+                    break;
                 }
                 break;
             }

@@ -24,7 +24,7 @@ class AdapterWebTest {
 //
 //    private final String hostip = "fe80::250:56ff:fec0:8";
 //
-//    private final int hostport = 8888;
+//    private final int port = 8888;
 
     ///////////////////
     private static AdapterWeb dut = null;
@@ -37,8 +37,7 @@ class AdapterWebTest {
 
     private static final String hostip = "fe80::250:56ff:fec0:8";
 
-    private static final int hostport = 8888;
-
+    private static final int port = 8888;
 
 
     //@BeforeEach
@@ -48,7 +47,7 @@ class AdapterWebTest {
         Map<String, String> conf = new HashMap<>();
         conf.put("IS_SERVER", "true");
         conf.put("IP", hostip);
-        conf.put("PORT", String.valueOf(hostport));
+        conf.put("PORT", String.valueOf(port));
 
         try {
             dut = new AdapterWeb(conf);
@@ -62,10 +61,11 @@ class AdapterWebTest {
         //dut.addObserver(selfmockedObserver);
 
         dut.addObserver(observer);
+
         // Start a new Thread with the socket server.
         dut.open();
 
-        SocketTestAdapter adapter = new SocketTestAdapter(hostip, hostport);
+        SocketTestAdapter adapter = new SocketTestAdapter(hostip, port);
         clients.add(adapter);
     }
 
@@ -79,57 +79,56 @@ class AdapterWebTest {
         @Override
         public void update(Observable observable, Object o) {
             System.out.println("received" + o.toString());
+            dut.send(((InetAdapterPacket)o).toByteArray());
         }
     }
 
     @Test
     void send() throws IOException {
+        selfmockedObserver = new myObserverMock();
+        dut.addObserver(selfmockedObserver);
+
         System.out.println("test.send");
         SocketTestAdapter client = clients.get(0);
         client.openSocket();
         PacketCreator creator = new PacketCreator();
         byte[] data = new PacketCreator().createClientPacket(5);
+        byte[] exp_payload = new byte[5];
+        System.arraycopy(data, 1, exp_payload, 0, exp_payload.length);
 
         client.send(data);
-
         verify(observer, timeout(1000).times(1))
                 .update(Mockito.<Observable>any(), Mockito.<Object>any());
 
-    }
+        byte[] received_array =  client.receiveInetPacket();
+        InetAdapterPacket packet = new InetAdapterPacket(received_array);
 
-    @Test
-    void receive() throws IOException{
-        System.out.println("test.receive");
-        SocketTestAdapter client = clients.get(0);
-        client.openSocket();
-        PacketCreator creator = new PacketCreator();
-        byte[] data = new PacketCreator().createClientPacket(5);
+        System.out.println("packet "+ packet.toString());
 
-        dut.send(data);
+        byte[] payload = packet.getPayload();
 
-        byte[] result =  client.receive();
+        assertArrayEquals(exp_payload, payload);
 
-        assertArrayEquals(data, result);
+
+        //System.out.println(packet.getPayload());
+        //assertArrayEquals();
 
     }
 
-    @Test
-    void receivedMultiple() throws IOException{
-        System.out.println("test.receive");
-        SocketTestAdapter client = clients.get(0);
-        client.openSocket();
-        client.openSocket();
-
-        byte[] data = new PacketCreator().createInetAdapterPacket();
-
-        dut.send(data);
-
-        byte[] result =  client.receive();
-
-        assertArrayEquals(data, result);
-    }
-
-
+//    @Test
+//    void receive() throws IOException{
+//        System.out.println("test.receive");
+//        SocketTestAdapter client = clients.get(0);
+//        client.openSocket();
+//        PacketCreator creator = new PacketCreator();
+//        byte[] data = new PacketCreator().createInetAdapterPacket();
+//        dut.send(data);
+//
+//        byte[] result =  client.receive();
+//
+//        assertArrayEquals(data, result);
+//
+//    }
 
     private class PacketCreator{
 
@@ -145,17 +144,19 @@ class AdapterWebTest {
                 fail(ex.toString());
                 throw new IllegalArgumentException();
             }
-
-            InetAdapterPacket data = new InetAdapterPacket(payload,
-                    address, 8888,(byte) 64);
+            InetAdapterPacket data = new InetAdapterPacket(payload,(byte) 64);
 
             return data.toByteArray();
         }
 
-        public  byte[] createClientPacket(int length){
-            byte [] data = new byte[length];
-            new Random().nextBytes(data);
-            data[0] = (byte)length;
+        public  byte[] createClientPacket(int payloadLength){
+
+            byte [] data = new byte[payloadLength + 1];
+            //new Random().nextBytes(data);
+            for(int i=1; i <= payloadLength; i++){
+                data[i] = (byte) i;
+            }
+            data[0] = (byte)payloadLength;
             return data;
         }
 
