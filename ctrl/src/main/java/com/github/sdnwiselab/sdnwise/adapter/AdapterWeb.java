@@ -97,7 +97,6 @@ public class AdapterWeb extends AbstractAdapter{
         }
     }
 
-
     @Override
     public void update(final Observable o, final Object arg) {
         InetAdapterPacket packet = ((InetAdapterPacket)arg)
@@ -105,6 +104,16 @@ public class AdapterWeb extends AbstractAdapter{
                 .setSdnWisePort(this.port)
                 .setSdnWiseAddress(this.ip_bytearr);
         super.update(o, arg);
+    }
+
+    public boolean identifyAddapter(InetAdapterPacket packet){
+        if(packet.getSdnWisePort() == this.port){
+            if(Arrays.equals(packet.getSdnWiseAddress(),
+                    this.ip_bytearr)){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

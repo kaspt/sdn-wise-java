@@ -37,6 +37,8 @@ class AdapterWebTest {
 
     private static final String hostip = "fe80::250:56ff:fec0:8";
 
+    private static byte[] hostip_arr;
+
     private static final int port = 8888;
 
 
@@ -50,21 +52,15 @@ class AdapterWebTest {
         conf.put("PORT", String.valueOf(port));
 
         try {
+            hostip_arr = InetAddress.getByName(hostip).getAddress();
             dut = new AdapterWeb(conf);
         }catch (UnknownHostException e){
             fail("can't open server socket");
         }
-
         observer = mock(Observer.class);
-
-        // selfmockedObserver = new myObserverMock();
-        //dut.addObserver(selfmockedObserver);
-
         dut.addObserver(observer);
 
-        // Start a new Thread with the socket server.
         dut.open();
-
         SocketTestAdapter adapter = new SocketTestAdapter(hostip, port);
         clients.add(adapter);
     }
@@ -78,7 +74,6 @@ class AdapterWebTest {
     public class  myObserverMock implements Observer{
         @Override
         public void update(Observable observable, Object o) {
-            System.out.println("received" + o.toString());
             dut.send(((InetAdapterPacket)o).toByteArray());
         }
     }
@@ -103,37 +98,36 @@ class AdapterWebTest {
         byte[] received_array =  client.receiveInetPacket();
         InetAdapterPacket packet = new InetAdapterPacket(received_array);
 
-        System.out.println("packet "+ packet.toString());
-
         byte[] payload = packet.getPayload();
 
         assertArrayEquals(exp_payload, payload);
 
-
-        //System.out.println(packet.getPayload());
-        //assertArrayEquals();
-
     }
 
-//    @Test
-//    void receive() throws IOException{
-//        System.out.println("test.receive");
-//        SocketTestAdapter client = clients.get(0);
-//        client.openSocket();
-//        PacketCreator creator = new PacketCreator();
-//        byte[] data = new PacketCreator().createInetAdapterPacket();
-//        dut.send(data);
-//
-//        byte[] result =  client.receive();
-//
-//        assertArrayEquals(data, result);
-//
-//    }
+    @Test
+    void identfy() throws Exception{
+        Map<String, String> conf = new HashMap<>();
+        conf.put("IS_SERVER", "true");
+        conf.put("IP", hostip);
+        conf.put("PORT", String.valueOf(port));
+        AdapterWeb dut;
+
+        dut = new AdapterWeb(conf);
+        Observer observerMock = mock(Observer.class);
+        dut.addObserver(observerMock);
+
+        byte[] payload = new byte[]{(byte)1,(byte)2,(byte)3};
+        InetAdapterPacket packet = new InetAdapterPacket(payload, (byte)64);
+        assertFalse(dut.identifyAddapter(packet));
+        packet.setSdnWiseAddress(hostip_arr);
+        assertFalse(dut.identifyAddapter(packet));
+        packet.setSdnWisePort(port);
+        assertTrue(dut.identifyAddapter( packet));
+    }
 
     private class PacketCreator{
 
         int defaultPayloadLenght = 5;
-
         public byte[] createInetAdapterPacket(){
             byte [] payload = new byte[defaultPayloadLenght];
             new Random().nextBytes(payload);

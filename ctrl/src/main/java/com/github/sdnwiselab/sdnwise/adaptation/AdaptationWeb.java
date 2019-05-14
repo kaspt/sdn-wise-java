@@ -40,15 +40,13 @@ public class AdaptationWeb extends ControlPlaneLayer {
                 log(Level.INFO, "\u2193" + Arrays.toString((byte[]) arg));
                 InetAdapterPacket message = new InetAdapterPacket((byte[]) arg);
 
-
                 for (AbstractAdapter ad : getLower()) {
                     AdapterWeb adweb =  (AdapterWeb) ad;
-
-
-                    //Todo Find correct lower Adapter/Socket
-                    found = true;
-                    ad.send(message.toByteArray());
-                    break;
+                    if(adweb.identifyAddapter(message)){
+                        found = true;
+                        ad.send(message.toByteArray());
+                        break;
+                    }
                 }
                 break;
             }
