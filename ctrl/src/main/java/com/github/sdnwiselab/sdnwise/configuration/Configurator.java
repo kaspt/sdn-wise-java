@@ -46,6 +46,8 @@ public class Configurator {
      */
     private final ConfigFlowVisor flowvisor = new ConfigFlowVisor();
 
+    private final ConfigMapping mapping = new ConfigMapping();
+
     /**
      * Parses a file given in input containing a JSON string and returns the
      * corresponding configurator object described in the file.
@@ -62,6 +64,10 @@ public class Configurator {
                     .log(Level.SEVERE, null, ex);
         }
         return null;
+    }
+
+    public final ConfigMapping getMapping(){
+        return mapping;
     }
 
     /**
