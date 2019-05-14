@@ -40,7 +40,7 @@ public class AdaptationWebTest {
         lowMock = mock(AbstractAdapter.class);
         lowers.add(lowMock);
 
-        dut = new AdaptationWeb(lowers, uppers);
+        dut = new AdaptationWeb(lowers, uppers, 5);
 
     }
 
@@ -70,7 +70,7 @@ public class AdaptationWebTest {
     @Test
     public void testAda_openSocket(){
 
-        AdaptationWeb instance = new AdaptationWeb(null, uppers);
+        AdaptationWeb instance = new AdaptationWeb(null, uppers, 5);
 
 
         byte[] expectedMessage = new byte[] { (byte)0x00, 0x0f, (byte)0x10 };

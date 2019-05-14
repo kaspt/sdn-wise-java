@@ -15,9 +15,9 @@ public class AdapterWeb extends AbstractAdapter{
      */
     private final String ip;
 
-    private final byte[] ip_bytearr;
+    private byte[] ip_bytearr;
 
-    private final byte ipVersion;
+    private byte ipVersion;
 
     /**
      * Boolean used to set the behaviour of the adapter. The adapter can act as
@@ -47,24 +47,28 @@ public class AdapterWeb extends AbstractAdapter{
      * <li>IS_SERVER</li>
      * <li>IP</li>
      * <li>PORT</li>
+     * <li>BACKLOG</li>
      * </ol>
      *
      * @param conf contains the serial port configuration data.
      */
-    public AdapterWeb(final Map<String, String> conf)
-            throws UnknownHostException {
+    public AdapterWeb(final Map<String, String> conf) {
         isServer = Boolean.parseBoolean(conf.get("IS_SERVER"));
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
-        backlog = 5;
-        ip_bytearr = InetAddress.getByName(ip).getAddress();
-        if (InetAddress.getByName(ip) instanceof Inet4Address){
-            ipVersion = (byte) 4;
-        }else if (InetAddress.getByName(ip) instanceof Inet6Address){
-            ipVersion = (byte) 6;
-        }else {
-            throw new IllegalArgumentException("is not a ip address "
-                    + ip );
+        backlog = Integer.parseInt(conf.get("BACKLOG"));
+        try {
+            ip_bytearr = InetAddress.getByName(ip).getAddress();
+            if (InetAddress.getByName(ip) instanceof Inet4Address){
+                ipVersion = (byte) 4;
+            }else if (InetAddress.getByName(ip) instanceof Inet6Address){
+                ipVersion = (byte) 6;
+            }else {
+                throw new IllegalArgumentException("is not a ip address "
+                        + ip );
+            }
+        }catch (IOException ex){
+            log(Level.SEVERE, ex.toString());
         }
     }
 
