@@ -21,9 +21,13 @@ public class AdaptationWeb extends ControlPlaneLayer {
      * @param upper the adapter that receives messages from the forwarding layer
      */
     public AdaptationWeb(List<AbstractAdapter> lower,
-                         List<AbstractAdapter> upper) {
-        super("INETADA", lower, upper);
+                         List<AbstractAdapter> upper,
+                         int backlog) {
+        super("WEBADA", lower, upper);
+        this.defaultBacklog = backlog;
     }
+
+    private final int defaultBacklog;
 
 
     @Override
