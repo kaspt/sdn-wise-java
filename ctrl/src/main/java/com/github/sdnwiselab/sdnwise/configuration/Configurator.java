@@ -37,6 +37,12 @@ public class Configurator {
      * Configuration parameters for the adaptation layer.
      */
     private final ConfigAdaptation adaptation = new ConfigAdaptation();
+
+    /**
+     * Configuration parameters for the inet adaptation layer.
+     */
+    private final ConfigAdaptationWeb adaptationweb = new ConfigAdaptationWeb();
+
     /**
      * Configuration parameters for the controller layer.
      */
@@ -77,6 +83,15 @@ public class Configurator {
      */
     public final ConfigAdaptation getAdaptation() {
         return adaptation;
+    }
+
+    /**
+     * Returns a configAdaptation object.
+     *
+     * @return a configAdaptation object
+     */
+    public final ConfigAdaptationWeb getAdaptationweb() {
+        return adaptationweb;
     }
 
     /**

@@ -1,0 +1,23 @@
+{
+  "adaptationweb": {
+    "lower": [
+      {
+        "TYPE": "INET",
+        "IS_SERVER":"TRUE",
+        "IP": "localhost",
+        "PORT": "9991",
+        "BACKLOG": "5"
+      }
+    ],
+    "upper": [
+      {
+        "TYPE": "TCP",
+        "IS_SERVER":"TRUE",
+        "IP":"localhost",
+        "PORT": "8888"
+      }],
+    "sockets": {
+      "BACKLOG": "5"
+    }
+  }
+}

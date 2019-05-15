@@ -18,6 +18,8 @@ package com.github.sdnwiselab.sdnwise.loader;
 
 import com.github.sdnwiselab.sdnwise.adaptation.Adaptation;
 import com.github.sdnwiselab.sdnwise.adaptation.AdaptationFactory;
+import com.github.sdnwiselab.sdnwise.adaptation.AdaptationWeb;
+import com.github.sdnwiselab.sdnwise.adaptation.AdaptationWebFactory;
 import com.github.sdnwiselab.sdnwise.configuration.Configurator;
 import com.github.sdnwiselab.sdnwise.controller.AbstractController;
 import com.github.sdnwiselab.sdnwise.controller.ControllerFactory;
@@ -101,6 +103,23 @@ public final class SdnWise {
         new Thread(adaptation).start();
         return adaptation;
     }
+
+    /**
+     * Starts the Adaptation layer of the Internet. The configurator
+     * contains the parameters of the Adaptation layer. In particular: a "lower"
+     * Adapter, in order to communicate with the Nodes and an "upper" Adapter to
+     * communicate with the FlowVisor
+     *
+     * @param conf contains the configuration parameters for the Adaptation
+     * layer
+     * @return the AbstractController layer of the current SDN-WISE network
+     */
+    public static AdaptationWeb startAdaptationWeb(final Configurator conf) {
+        AdaptationWeb adaptation = AdaptationWebFactory.getAdaptationWeb(conf);
+        new Thread(adaptation).start();
+        return adaptation;
+    }
+
 
     /**
      * Starts the AbstractController layer of the SDN-WISE network. The
