@@ -2,34 +2,37 @@ package com.github.sdnwiselab.sdnwise.mapping;
 
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
 
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MappingStatic extends AbstractMapping {
 
     private Map<NodeAddress, InetSocketAddress> lookuptable = new HashMap<>();
 
-    public MappingStatic(String resourcefilename){
-        String csvFile = "test.csv";
+    public MappingStatic(String mappingFile){
+        fillLookuptable(mappingFile);
+    }
+
+    public void fillLookuptable(String file){
         String line = "";
-        String cvsSplitBy = ",";
-        HashMap<String, String> list = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        String cvsSplitBy = ";";
 
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             while ((line = br.readLine()) != null) {
+                String[] splitedLine = line.split(cvsSplitBy);
 
-                // use comma as separator
-                String[] country = line.split(cvsSplitBy);
-
-                //System.out.println(country[0] +"  "  + country[1]);
-                list.put(country[0], country[1]);
+                NodeAddress nodeAddress = new NodeAddress(splitedLine[0]);
+                InetSocketAddress socketAddress =
+                        new InetSocketAddress(splitedLine[1],
+                                Integer.parseInt(splitedLine[2]));
+                lookuptable.put(nodeAddress, socketAddress);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -37,16 +40,26 @@ public class MappingStatic extends AbstractMapping {
 
     @Override
     public List<InetSocketAddress> getAllAddresses() {
-        return null;
+        return new ArrayList<>(lookuptable.values());
     }
 
     @Override
     public NodeAddress getNodeAddress(InetSocketAddress addr) {
-        return null;
+        try {
+            return lookuptable.entrySet()
+                    .stream()
+                    .filter(entry -> addr.equals(entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .findFirst().get();
+
+        }catch (NoSuchElementException ex){
+            //Todo make log entry
+            return null;
+        }
     }
 
     @Override
     public InetSocketAddress getSocketAddress(NodeAddress addr) {
-        return null;
+        return lookuptable.get(addr);
     }
 }
