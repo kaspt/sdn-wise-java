@@ -41,6 +41,8 @@ class AdapterWebTest {
 
     private static final int port = 8888;
 
+    private static final int backlog = 5;
+
 
     //@BeforeEach
     @BeforeAll
@@ -50,6 +52,7 @@ class AdapterWebTest {
         conf.put("IS_SERVER", "true");
         conf.put("IP", hostip);
         conf.put("PORT", String.valueOf(port));
+        conf.put("BACKLOG", String.valueOf(backlog));
 
         try {
             hostip_arr = InetAddress.getByName(hostip).getAddress();
@@ -110,6 +113,7 @@ class AdapterWebTest {
         conf.put("IS_SERVER", "true");
         conf.put("IP", hostip);
         conf.put("PORT", String.valueOf(port));
+        conf.put("BACKLOG", String.valueOf(backlog));
         AdapterWeb dut;
 
         dut = new AdapterWeb(conf);

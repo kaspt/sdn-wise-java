@@ -19,5 +19,11 @@
     "sockets": {
       "BACKLOG": "5"
     }
+  },
+  "mapping": {
+    "resource": {
+      "TYPE": "STATIC",
+      "FILE":"/mappinTestfile.csv"
+    }
   }
 }
