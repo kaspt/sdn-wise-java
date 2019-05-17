@@ -1,10 +1,29 @@
+/*
+ * Copyright (C) 2015 SDN-WISE
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.github.sdnwiselab.sdnwise.mapping;
 
+
+import com.github.sdnwiselab.sdnwise.configuration.Configurator;
+import com.github.sdnwiselab.sdnwise.loader.SdnWise;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
 
 import org.junit.jupiter.api.*;
-import org.junit.platform.engine.support.hierarchical.Node;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 
 import java.util.LinkedList;
@@ -75,4 +94,17 @@ class MappingStaticTest {
         result = dut.getSocketAddress(wrong_addres);
         assertNotEquals(expected, result);
     }
+
+    @Test
+    void MappingFactory(){
+        InputStream is = null;
+
+        is = SdnWise.class.getResourceAsStream("/configadaptaionTest.json");
+        Configurator conf = Configurator.load(is);
+        AbstractMapping mapping =
+                MappingFactory.getMapping(conf);
+        assertEquals(mapping.getClass(), MappingStatic.class );
+
+    }
+
 }

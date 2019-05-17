@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 SDN-WISE
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.github.sdnwiselab.sdnwise.adapter;
 
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
@@ -71,6 +87,28 @@ public class AdapterWeb extends AbstractAdapter{
             log(Level.SEVERE, ex.toString());
         }
     }
+
+    public AdapterWeb(InetSocketAddress address, int backlog, boolean isServer){
+        this.isServer = isServer;
+        this.backlog = backlog;
+        port = address.getPort();
+        ip = address.getAddress().getAddress().toString();
+        ip_bytearr = address.getAddress().getAddress();
+        try {
+            ip_bytearr = InetAddress.getByName(ip).getAddress();
+            if (InetAddress.getByName(ip) instanceof Inet4Address){
+                ipVersion = (byte) 4;
+            }else if (InetAddress.getByName(ip) instanceof Inet6Address){
+                ipVersion = (byte) 6;
+            }else {
+                throw new IllegalArgumentException("is not a ip address "
+                        + ip );
+            }
+        }catch (IOException ex){
+            log(Level.SEVERE, ex.toString());
+        }
+    }
+
 
     @Override
     public final boolean close() {

@@ -48,7 +48,7 @@ public final class SdnWise {
     /**
      * Dafault config file location.
      */
-    private static final String CONFIG_FILE = "/config.ini";
+    private static final String CONFIG_FILE = "/config.json";
     /**
      * Set to true to start an emulated network.
      */

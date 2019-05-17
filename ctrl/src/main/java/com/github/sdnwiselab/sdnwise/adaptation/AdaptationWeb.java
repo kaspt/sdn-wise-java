@@ -3,6 +3,7 @@ package com.github.sdnwiselab.sdnwise.adaptation;
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
 import com.github.sdnwiselab.sdnwise.adapter.AdapterWeb;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
+import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 
 import java.net.InetAddress;
@@ -10,6 +11,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 public class AdaptationWeb extends ControlPlaneLayer {
@@ -22,17 +24,27 @@ public class AdaptationWeb extends ControlPlaneLayer {
      */
     public AdaptationWeb(List<AbstractAdapter> lower,
                          List<AbstractAdapter> upper,
-                         int backlog) {
+                         int backlog,
+                         AbstractMapping mapping) {
         super("WEBADA", lower, upper);
         this.defaultBacklog = backlog;
+        this.mapping = mapping;
     }
 
     private final int defaultBacklog;
+
+    private final AbstractMapping mapping;
 
 
     @Override
     protected void setupLayer() {
         //TODO Open the sockets.
+
+        AtomicInteger aBacklog = new AtomicInteger(this.defaultBacklog);
+        mapping.getAllAddresses().forEach((address -> {
+            getLower().add(new AdapterWeb(address, aBacklog.get() ,true));
+        }));
+
     }
 
     @Override
