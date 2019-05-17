@@ -72,20 +72,13 @@ public class AdaptationWebTest {
 
         AdaptationWeb instance = new AdaptationWeb(null, uppers, 5, null);
 
-
         byte[] expectedMessage = new byte[] { (byte)0x00, 0x0f, (byte)0x10 };
         byte[] error= new byte[] { (byte)0xff, 0x0f, (byte)0x10 };
-
 
         for (AbstractAdapter ad :uppers){
             ad.send(expectedMessage);
         }
         verify(uppers.get(0), times(1)).send(expectedMessage);
-
-        // TODO create Adapter Mock
-        // TODO Create Instance of AdaptationWeb ad uper layer
-        // TODO create Socket Request
-        // TODO validate received Data from Adapter
 
     }
 

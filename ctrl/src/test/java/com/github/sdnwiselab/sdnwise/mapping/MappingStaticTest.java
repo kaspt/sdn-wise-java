@@ -99,7 +99,7 @@ class MappingStaticTest {
     void MappingFactory(){
         InputStream is = null;
 
-        is = SdnWise.class.getResourceAsStream("/configadaptaionTest.json");
+        is = SdnWise.class.getResourceAsStream("/configTestFile.json");
         Configurator conf = Configurator.load(is);
         AbstractMapping mapping =
                 MappingFactory.getMapping(conf);

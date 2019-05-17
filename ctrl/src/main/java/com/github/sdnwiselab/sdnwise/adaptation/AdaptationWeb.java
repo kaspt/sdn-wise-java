@@ -38,8 +38,6 @@ public class AdaptationWeb extends ControlPlaneLayer {
 
     @Override
     protected void setupLayer() {
-        //TODO Open the sockets.
-
         AtomicInteger aBacklog = new AtomicInteger(this.defaultBacklog);
         mapping.getAllAddresses().forEach((address -> {
             getLower().add(new AdapterWeb(address, aBacklog.get() ,true));

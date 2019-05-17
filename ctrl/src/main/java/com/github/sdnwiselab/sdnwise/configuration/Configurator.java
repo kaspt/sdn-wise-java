@@ -54,6 +54,8 @@ public class Configurator {
 
     private final ConfigMapping mapping = new ConfigMapping();
 
+    private final ConfigForwarding forwarding = new ConfigForwarding();
+
     /**
      * Parses a file given in input containing a JSON string and returns the
      * corresponding configurator object described in the file.
@@ -74,6 +76,10 @@ public class Configurator {
 
     public final ConfigMapping getMapping(){
         return mapping;
+    }
+
+    public final ConfigForwarding getForwarding(){
+        return forwarding;
     }
 
     /**
