@@ -49,16 +49,16 @@ public class AdaptationWeb extends ControlPlaneLayer {
     public void update(Observable o, Object arg) {
         boolean found = false;
         // Send message to lower tcp adapter.
-        for (AbstractAdapter adapter : getUpper()) {
-            if (o.equals(adapter)) {
+        for (AbstractAdapter upperAdapter : getUpper()) {
+            if (o.equals(upperAdapter)) {
                 log(Level.INFO, "\u2193" + Arrays.toString((byte[]) arg));
                 InetAdapterPacket message = new InetAdapterPacket((byte[]) arg);
 
-                for (AbstractAdapter ad : getLower()) {
-                    AdapterWeb adweb =  (AdapterWeb) ad;
+                for (AbstractAdapter lowerAdapter : getLower()) {
+                    AdapterWeb adweb =  (AdapterWeb) lowerAdapter;
                     if(adweb.identifyAddapter(message)){
                         found = true;
-                        ad.send(message.toByteArray());
+                        lowerAdapter.send(message.toByteArray());
                         break;
                     }
                 }

@@ -17,12 +17,18 @@
 package com.github.sdnwiselab.sdnwise.forwarding;
 
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterCom;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterCooja;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterTcp;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
+import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
+import java.util.logging.Level;
 
 /**
  *
@@ -49,11 +55,67 @@ public class Forwarding extends ControlPlaneLayer {
 
     @Override
     protected void setupLayer() {
-
+        //Notthing to do here
     }
 
     @Override
-    public void update(Observable observable, Object o) {
-
+    public void update(Observable o, Object arg) {
+        byte[] packet = (byte[])arg;
+        if(NetworkPacket.isSdnWise(packet)){
+            for(AbstractAdapter upper: getUpper()){
+                if(o.equals(upper)){
+                    managePacketfromController(packet);
+                    return;
+                }
+            }
+            NetworkPacket networkPacket = new NetworkPacket(packet);
+            managePacket_from_SDNWISE(networkPacket);
+        }else {
+            managePacket_fromWeb(packet);
+        }
     }
+
+    private void managePacketfromController(byte[] data){
+        log(Level.INFO, "\u2193" + "C to N" + Arrays.toString(data));
+        getNodeAdapter().send(data);
+    }
+
+    private void managePacket_from_SDNWISE(NetworkPacket data){
+        if(data.getTyp() > 0){
+            log(Level.INFO, "sdn to contr" + Arrays.toString(data.toByteArray()));
+            for(AbstractAdapter upper: getUpper()){
+                upper.send(data.toByteArray());
+            }
+        }else {
+            log(Level.INFO, "sdn to web" + Arrays.toString(data.toByteArray()));
+            // Todo create Inet Adapterpacket
+            // Todo find correct adapter.
+            // send to web
+        }
+    }
+
+    private void managePacket_fromWeb(byte[] packet){
+        log(Level.INFO, "web to sdn" + Arrays.toString(packet));
+        // Todo create sdnwise data packet, save infos, send to node adapter.
+    }
+
+    private AbstractAdapter getNodeAdapter(){
+        for(AbstractAdapter lower: getLower()){
+            if(lower instanceof AdapterCooja
+                    || lower instanceof AdapterCom){
+                return lower;
+            }
+        }
+        throw new UnsupportedOperationException("Node adapter is not found");
+    }
+
+    private AbstractAdapter getWebAdapter(){
+        for(AbstractAdapter lower: getLower()){
+            if(lower instanceof AdapterTcp){
+                return lower;
+            }
+        }
+        throw new UnsupportedOperationException("Web adapter is not found");
+    }
+
 }
