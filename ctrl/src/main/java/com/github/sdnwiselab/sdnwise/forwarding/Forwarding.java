@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,6 +37,12 @@ import java.util.logging.Level;
  * @author Tobias Kasper
  */
 public class Forwarding extends ControlPlaneLayer {
+
+
+    /**
+     * To avoid garbage collector.
+     */
+    protected static final Logger LOGGER = Logger.getLogger("FWD");
 
     private final AbstractMapping mapping;
 
@@ -76,7 +83,7 @@ public class Forwarding extends ControlPlaneLayer {
     }
 
     private void managePacketfromController(byte[] data){
-        log(Level.INFO, "\u2193" + "C to N" + Arrays.toString(data));
+        log(Level.INFO, "\u2193" + Arrays.toString(data));
         getNodeAdapter().send(data);
     }
 

@@ -27,6 +27,8 @@ import com.github.sdnwiselab.sdnwise.controller.ControllerGui;
 import com.github.sdnwiselab.sdnwise.flowtable.FlowTableEntry;
 import com.github.sdnwiselab.sdnwise.flowvisor.FlowVisor;
 import com.github.sdnwiselab.sdnwise.flowvisor.FlowVisorFactory;
+import com.github.sdnwiselab.sdnwise.forwarding.Forwarding;
+import com.github.sdnwiselab.sdnwise.forwarding.ForwardingFactory;
 import com.github.sdnwiselab.sdnwise.mote.standalone.Mote;
 import com.github.sdnwiselab.sdnwise.mote.standalone.Sink;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
@@ -48,7 +50,8 @@ public final class SdnWise {
     /**
      * Dafault config file location.
      */
-    private static final String CONFIG_FILE = "/config.json";
+    private static final String CONFIG_FILE = "/configRouter.json";
+//    private static final String CONFIG_FILE =  "/config.json";
     /**
      * Set to true to start an emulated network.
      */
@@ -121,6 +124,13 @@ public final class SdnWise {
     }
 
 
+    public static Forwarding startForwarding(final Configurator conf){
+        Forwarding forwarding = ForwardingFactory.getForwarding(conf);
+        new Thread(forwarding).start();
+        return forwarding;
+    }
+
+
     /**
      * Starts the AbstractController layer of the SDN-WISE network. The
      * configurator class contains the configuration parameters of the
@@ -181,7 +191,13 @@ public final class SdnWise {
         } catch (InterruptedException ex) {
             Logger.getGlobal().log(Level.SEVERE, null, ex);
         }
+        startForwarding(conf);
+
         startAdaptation(conf);
+
+        startAdaptationWeb(conf);
+
+
 
         if (EMULATED) {
             startVirtualNetwork();
@@ -213,9 +229,9 @@ public final class SdnWise {
 
             FlowTableEntry e1 = FlowTableEntry.fromString(
                     "if (P.DST == 8) {"
-                    + " FUNCTION 1 9 8 7 6 5 4;"
-                    + " FORWARD_U 8;"
-                    + "}");
+                            + " FUNCTION 1 9 8 7 6 5 4;"
+                            + " FORWARD_U 8;"
+                            + "}");
             controller.addNodeRule((byte) 1, new NodeAddress("0.3"), e1);
         }
         // You can verify the behaviour of the node  using the GUI

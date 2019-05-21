@@ -64,12 +64,12 @@ class ForwardingTest {
 
         //        adaContr = mock(AbstractAdapter.class,
 //                withSettings().extraInterfaces(AdapterTcp.class));
-        adaContr = mock(AdapterTcp.class);
+        adaContr = mock(AbstractAdapter.class);
 
         upper.add(adaContr);
 
         List<AbstractAdapter> lowers = new LinkedList<>();
-        adaNode = mock(AdapterCooja.class);
+        adaNode = mock(AbstractAdapter.class);
 //        adaNode = mock(AbstractAdapter.class,
 //                withSettings().extraInterfaces(AdapterCooja.class));
         lowers.add(adaNode);

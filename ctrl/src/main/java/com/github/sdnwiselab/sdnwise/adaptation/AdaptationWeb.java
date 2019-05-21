@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.Observable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AdaptationWeb extends ControlPlaneLayer {
+
+    protected static final Logger LOGGER = Logger.getLogger("ADAWEB");
 
     /**
      * Creates an adaptation object given two adapters.
