@@ -157,7 +157,7 @@ public class AdapterTcp extends AbstractAdapter {
         private Socket socket;
 
         @Override
-        public void send(final byte[] data) {
+        public final void send(final byte[] data) {
             try {
                 OutputStream out = socket.getOutputStream();
                 DataOutputStream dos = new DataOutputStream(out);

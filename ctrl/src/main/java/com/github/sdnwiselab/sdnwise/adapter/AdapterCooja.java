@@ -102,7 +102,7 @@ return false;
     }
 
     @Override
-    public void send(final byte[] data) {
+    public final void send(final byte[] data) {
         if (isActive()) {
             tcpElement.send(data);
         }
@@ -248,7 +248,7 @@ return false;
         }
 
         @Override
-        public void send(final byte[] data) {
+        public final void send(final byte[] data) {
             clientSockets.stream().forEach((sck) -> {
                 try {
                     OutputStream out = sck.getOutputStream();
