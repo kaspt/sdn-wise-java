@@ -92,7 +92,7 @@ public class AdapterWeb extends AbstractAdapter{
         this.isServer = isServer;
         this.backlog = backlog;
         port = address.getPort();
-        ip = address.getAddress().getAddress().toString();
+        ip = address.getAddress().getHostAddress();
         ip_bytearr = address.getAddress().getAddress();
         try {
             ip_bytearr = InetAddress.getByName(ip).getAddress();
