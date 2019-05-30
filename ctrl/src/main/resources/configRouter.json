@@ -13,21 +13,20 @@
         "TYPE": "TCP",
         "IS_SERVER":"FALSE",
         "IP":"192.168.214.1",
-        "PORT": "9992"
+        "PORT": "9993"
       }
     ]
   },
   
   "adaptationweb": {
-    "lower": [
-   
-    ],
+    "lower": [],
     "upper": [
       {
         "TYPE": "TCP",
         "IS_SERVER": "FALSE",
         "IP": "192.168.214.1",
-        "PORT": "9992"
+        "PORT": "9992",
+        "ADAPTER_ID": "ADAPT_WEB"
       }
     ],
     "sockets": {
@@ -48,13 +47,15 @@
         "TYPE": "TCP",
         "IS_SERVER":"TRUE",
         "IP": "localhost",
-        "PORT": "9992"
+        "PORT": "9992",
+        "ADAPTER_ID": "ADAPT_WEB"
       },
       {
         "TYPE": "TCP",
         "IS_SERVER":"TRUE",
         "IP": "localhost",
-        "PORT": "9993"
+        "PORT": "9993",
+        "ADAPTER_ID": "ADAPT_NODE"
       }
     
     ],
@@ -102,9 +103,9 @@
       "TYPE": "DIJKSTRA"
     },
     "map": {
-      "TIMEOUT": "15000",
+      "TIMEOUT": "30",
       "RSSI_RESOLUTION": "20",
-      "GRAPH":"GUI"
+      "GRAPH":"CLI"
     }
   }
   

@@ -11,7 +11,11 @@ public abstract class AbstractMapping {
 
     public abstract NodeAddress getNodeAddress(InetSocketAddress addr);
 
+    public abstract NodeAddress getNodeAddress(byte[] IPaddr, int port);
+
     public abstract InetSocketAddress getSocketAddress(NodeAddress addr);
+
+    public abstract int getNodeNet(NodeAddress addr);
 
 
 }

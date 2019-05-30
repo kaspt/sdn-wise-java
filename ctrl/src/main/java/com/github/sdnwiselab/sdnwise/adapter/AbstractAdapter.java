@@ -38,6 +38,8 @@ public abstract class AbstractAdapter extends Observable implements Observer {
 
     private boolean active;
 
+    protected String adapterIdentifier= null;
+
     /**
      * Creates an AbstractAdapter.
      */
@@ -102,4 +104,9 @@ public abstract class AbstractAdapter extends Observable implements Observer {
     protected final void log(final Level level, final String msg) {
         LOGGER.log(level, msg);
     }
+
+    public String getAdapterIdentifier(){
+        return adapterIdentifier;
+    }
+
 }

@@ -3,6 +3,7 @@ package com.github.sdnwiselab.sdnwise.adaptation;
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
 import com.github.sdnwiselab.sdnwise.adapter.AdapterWeb;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
+import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 
@@ -30,6 +31,7 @@ public class AdaptationWeb extends ControlPlaneLayer {
                          int backlog,
                          AbstractMapping mapping) {
         super("WEBADA", lower, upper);
+        ControlPlaneLogger.setupLogger(getLayerShortName());
         this.defaultBacklog = backlog;
         this.mapping = mapping;
     }
@@ -43,9 +45,14 @@ public class AdaptationWeb extends ControlPlaneLayer {
     protected void setupLayer() {
         AtomicInteger aBacklog = new AtomicInteger(this.defaultBacklog);
         mapping.getAllAddresses().forEach((address -> {
-            getLower().add(new AdapterWeb(address, aBacklog.get() ,true));
+            AbstractAdapter adapter = new AdapterWeb(address,
+                    aBacklog.get() ,
+                    true);
+            getLower().add(adapter);
+            if(adapter.open()){
+                adapter.addObserver(this);
+            }
         }));
-
     }
 
     @Override
@@ -59,6 +66,9 @@ public class AdaptationWeb extends ControlPlaneLayer {
 
                 for (AbstractAdapter lowerAdapter : getLower()) {
                     AdapterWeb adweb =  (AdapterWeb) lowerAdapter;
+                    String adaid = lowerAdapter.getAdapterIdentifier();
+                    // TODO identify adapter with identifier
+
                     if(adweb.identifyAddapter(message)){
                         found = true;
                         lowerAdapter.send(message.toByteArray());
@@ -80,7 +90,6 @@ public class AdaptationWeb extends ControlPlaneLayer {
                 }
             }
         }
-
 
     }
 }

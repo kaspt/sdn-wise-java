@@ -19,14 +19,11 @@ package com.github.sdnwiselab.sdnwise.adapter;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -253,6 +250,7 @@ return false;
                 try {
                     OutputStream out = sck.getOutputStream();
                     DataOutputStream dos = new DataOutputStream(out);
+                    log(Level.INFO, "to sdn" + Arrays.toString(data));
                     dos.write(data);
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());

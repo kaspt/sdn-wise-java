@@ -29,6 +29,7 @@ import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
 import com.github.sdnwiselab.sdnwise.packet.DataPacket;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
+import com.github.sdnwiselab.sdnwise.packet.WebPacket;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,16 +63,14 @@ class ForwardingTest {
         System.out.println("setUp.ForwardingTest");
         List<AbstractAdapter> upper = new LinkedList<>();
 
-        //        adaContr = mock(AbstractAdapter.class,
-//                withSettings().extraInterfaces(AdapterTcp.class));
+
         adaContr = mock(AbstractAdapter.class);
 
         upper.add(adaContr);
 
         List<AbstractAdapter> lowers = new LinkedList<>();
         adaNode = mock(AbstractAdapter.class);
-//        adaNode = mock(AbstractAdapter.class,
-//                withSettings().extraInterfaces(AdapterCooja.class));
+
         lowers.add(adaNode);
 
         adaWeb = mock(AbstractAdapter.class);
@@ -118,18 +117,23 @@ class ForwardingTest {
 
         byte[] exp_payload = packet_to_send.getPayload();
         NodeAddress exp_address = new NodeAddress(1,2);
-        when(mapping.getNodeAddress(any())).thenReturn(exp_address);
+
+        // when(mapping.getNodeAddress(any(), any())).thenReturn(exp_address);
+        when(mapping.getNodeAddress(any(),anyInt())).thenReturn(exp_address);
+        when(adaNode.getAdapterIdentifier()).thenReturn("ADAPT_NODE");
+        when(adaWeb.getAdapterIdentifier()).thenReturn("ADAPT_WEB");
 
         // Invoke Action
-        adaWeb.update(adaWeb, packet_to_send.toByteArray());
-
+        fwd.update(adaWeb, packet_to_send.toByteArray());
 
         ArgumentCaptor<byte[]> argument = ArgumentCaptor.forClass(byte[].class);
+
+
 
         verify(adaContr, never()).send(any());
         verify(adaWeb, never()).send(any());
         verify(adaNode, times(1)).send(argument.capture());
-        DataPacket resultPacket = new DataPacket(argument.getValue());
+        WebPacket resultPacket = new WebPacket(argument.getValue());
 
 
         assertEquals(exp_address, resultPacket.getDst());

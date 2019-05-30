@@ -17,17 +17,17 @@
 package com.github.sdnwiselab.sdnwise.forwarding;
 
 import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
-import com.github.sdnwiselab.sdnwise.adapter.AdapterCom;
-import com.github.sdnwiselab.sdnwise.adapter.AdapterCooja;
-import com.github.sdnwiselab.sdnwise.adapter.AdapterTcp;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
+import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
+import com.github.sdnwiselab.sdnwise.packet.WebPacket;
+import com.github.sdnwiselab.sdnwise.util.NodeAddress;
+import org.javatuples.Pair;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Observable;
+import java.time.Instant;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,13 +38,14 @@ import java.util.logging.Logger;
  */
 public class Forwarding extends ControlPlaneLayer {
 
-
     /**
      * To avoid garbage collector.
      */
     protected static final Logger LOGGER = Logger.getLogger("FWD");
 
     private final AbstractMapping mapping;
+
+    private final NodeAddress sinkAddress;
 
     /**
      * Creates an adaptation object given two adapters.
@@ -57,6 +58,7 @@ public class Forwarding extends ControlPlaneLayer {
                       AbstractMapping mapping) {
         super("FWD", lower, upper);
         this.mapping = mapping;
+        sinkAddress = new NodeAddress("0.1");
         ControlPlaneLogger.setupLogger(getLayerShortName());
     }
 
@@ -71,30 +73,32 @@ public class Forwarding extends ControlPlaneLayer {
         if(NetworkPacket.isSdnWise(packet)){
             for(AbstractAdapter upper: getUpper()){
                 if(o.equals(upper)){
-                    managePacketfromController(packet);
+                    managePacket_fromController(packet);
                     return;
                 }
             }
             NetworkPacket networkPacket = new NetworkPacket(packet);
-            managePacket_from_SDNWISE(networkPacket);
+            managePacket_fromSDNWISE(networkPacket);
         }else {
             managePacket_fromWeb(packet);
         }
     }
 
-    private void managePacketfromController(byte[] data){
+    private void managePacket_fromController(byte[] data){
         log(Level.INFO, "\u2193" + Arrays.toString(data));
         getNodeAdapter().send(data);
     }
 
-    private void managePacket_from_SDNWISE(NetworkPacket data){
+    private void managePacket_fromSDNWISE(NetworkPacket data){
         if(data.getTyp() > 0){
-            log(Level.INFO, "sdn to contr" + Arrays.toString(data.toByteArray()));
+            log(Level.INFO, "sdn to contr"
+                    + Arrays.toString(data.toByteArray()));
             for(AbstractAdapter upper: getUpper()){
                 upper.send(data.toByteArray());
             }
         }else {
-            log(Level.INFO, "sdn to web" + Arrays.toString(data.toByteArray()));
+            log(Level.INFO, "sdn to web"
+                    + Arrays.toString(data.toByteArray()));
             // Todo create Inet Adapterpacket
             // Todo find correct adapter.
             // send to web
@@ -103,26 +107,127 @@ public class Forwarding extends ControlPlaneLayer {
 
     private void managePacket_fromWeb(byte[] packet){
         log(Level.INFO, "web to sdn" + Arrays.toString(packet));
-        // Todo create sdnwise data packet, save infos, send to node adapter.
+        InetAdapterPacket inetAdapterPacket = new InetAdapterPacket(packet);
+
+        WebPacket webPacket =
+                packetManager.manageInetAdapterPacket(inetAdapterPacket);
+        getNodeAdapter().send(webPacket.toByteArray());
     }
+
+    private PacketManager packetManager = new PacketManager();
+
+    private class PacketManager{
+
+        private final int MAX_MESSAGE_PER_NODE = 255;
+
+        private Map<NodeAddress,
+                Pair<BitSet,
+                        List<MessageInfos>>> messageData = new HashMap<>();
+
+        private class MessageInfos{
+            byte messageID;
+            Instant timestamp;
+            byte[] inetAddapterPacket;
+            public MessageInfos(final byte messageID,
+                                final byte[] inetAddapterPacket){
+                this.messageID = messageID;
+                this.inetAddapterPacket = inetAddapterPacket;
+                this.timestamp = Instant.now();
+            }
+        }
+
+        public WebPacket manageInetAdapterPacket(InetAdapterPacket packet){
+
+            NodeAddress address = mapping.getNodeAddress(packet.getSdnWiseAddress(),
+                    packet.getSdnWisePort());
+            if(address == null){
+                throw new IllegalArgumentException("node address is not valid.");
+            }
+
+            int netId = mapping.getNodeNet(address);
+
+            Pair<BitSet, List<MessageInfos>> p = messageData.get(address);
+            BitSet bitSet = null;
+            if(p == null){
+                messageData.put(address,
+                        new Pair<BitSet, List<MessageInfos>>(
+                                new BitSet(MAX_MESSAGE_PER_NODE),
+                                new ArrayList<>()));
+                bitSet = messageData.get(address).getValue0();
+            }else {
+                bitSet = p.getValue0();
+            }
+            int messageID = bitSet.nextClearBit(0);
+            if(messageID < MAX_MESSAGE_PER_NODE){
+                bitSet.set(messageID);
+                MessageInfos messageInfo = new MessageInfos((byte)messageID,
+                        Arrays.copyOfRange(packet.toByteArray(), 0,
+                                InetAdapterPacket.HEADER_LENGTH));
+                messageData.get(address).getValue1().add(messageInfo);
+            }else {
+                // Todo handle message overflow
+                throw new IllegalArgumentException("no free messages IDs");
+            }
+            byte[] payload = packet.getPayload();
+
+
+            WebPacket webPacket = new WebPacket(netId,
+                    sinkAddress,
+                    address,
+                    (byte)messageID,
+                    packet.getPayload());
+
+            return webPacket;
+        }
+        public InetAdapterPacket getInetPacket(byte messageID,
+                                               NodeAddress src,
+                                               byte[] payload){
+            // TODo get infos from map ,remove message from map,
+
+            InetAdapterPacket packet = new InetAdapterPacket(payload, (byte)64);
+
+
+            return packet;
+        }
+    }
+
+
+    /**
+     * private atributte for optimising
+     */
+    private AbstractAdapter nodeAdapter = null;
 
     private AbstractAdapter getNodeAdapter(){
-        for(AbstractAdapter lower: getLower()){
-            if(lower instanceof AdapterCooja
-                    || lower instanceof AdapterCom){
-                return lower;
+        if(nodeAdapter != null){
+            return nodeAdapter;
+        }else {
+            for (AbstractAdapter a : getLower()) {
+                if (a.getAdapterIdentifier().equals("ADAPT_NODE")) {
+                    nodeAdapter = a;
+                    return nodeAdapter;
+                }
             }
         }
-        throw new UnsupportedOperationException("Node adapter is not found");
+        throw new UnsupportedOperationException("Node adapter not found");
     }
 
+    /**
+     * private atributte for optimising
+     */
+    private AbstractAdapter webAdapter = null;
+
     private AbstractAdapter getWebAdapter(){
-        for(AbstractAdapter lower: getLower()){
-            if(lower instanceof AdapterTcp){
-                return lower;
+        if(webAdapter != null){
+            return webAdapter;
+        }else {
+            for(AbstractAdapter a: getLower()){
+                if(a.getAdapterIdentifier().equals("ADAPT_WEB")){
+                    webAdapter = a;
+                    return webAdapter;
+                }
             }
         }
-        throw new UnsupportedOperationException("Web adapter is not found");
+        throw new UnsupportedOperationException("Web adapter not found");
     }
 
 }

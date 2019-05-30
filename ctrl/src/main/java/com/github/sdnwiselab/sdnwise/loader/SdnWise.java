@@ -192,10 +192,25 @@ public final class SdnWise {
             Logger.getGlobal().log(Level.SEVERE, null, ex);
         }
         startForwarding(conf);
+        try {
+            Thread.sleep(TIMEOUT);
+        } catch (InterruptedException ex) {
+            Logger.getGlobal().log(Level.SEVERE, null, ex);
+        }
 
         startAdaptation(conf);
+        try {
+            Thread.sleep(TIMEOUT);
+        } catch (InterruptedException ex) {
+            Logger.getGlobal().log(Level.SEVERE, null, ex);
+        }
 
         startAdaptationWeb(conf);
+        try {
+            Thread.sleep(TIMEOUT);
+        } catch (InterruptedException ex) {
+            Logger.getGlobal().log(Level.SEVERE, null, ex);
+        }
 
 
 

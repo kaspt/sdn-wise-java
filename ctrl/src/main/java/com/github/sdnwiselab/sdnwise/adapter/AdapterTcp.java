@@ -74,6 +74,7 @@ public class AdapterTcp extends AbstractAdapter {
         isServer = Boolean.parseBoolean(conf.get("IS_SERVER"));
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
+        adapterIdentifier = conf.get("ADAPTER_ID");
     }
 
     @Override

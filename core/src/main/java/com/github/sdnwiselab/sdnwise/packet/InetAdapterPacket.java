@@ -23,9 +23,6 @@ public class InetAdapterPacket {
             IPVERSION_LEN = 1,
             HEADER_LENGTH = 40;
 
-    public static final int IPv6Version = 6,
-            IPv4Version= 4;
-
     public static final int PORTMAX_SIZE = 65535;
 
     /**
