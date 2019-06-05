@@ -246,14 +246,21 @@ return false;
 
         @Override
         public final void send(final byte[] data) {
+            if(clientSockets.size() == 0){
+                log(Level.SEVERE, "No client socket available");
+            }
             clientSockets.stream().forEach((sck) -> {
                 try {
                     OutputStream out = sck.getOutputStream();
                     DataOutputStream dos = new DataOutputStream(out);
-                    log(Level.INFO, "to sdn" + Arrays.toString(data));
+
+                    log(Level.INFO, "\u2193cooja" + Arrays.toString(data));
                     dos.write(data);
                 } catch (IOException ex) {
+
                     log(Level.SEVERE, ex.toString());
+                    ex.printStackTrace();
+                    log(Level.SEVERE, "COOJA send exception.");
                     removableSockets.add(sck);
                 }
             });
@@ -297,6 +304,7 @@ return false;
                     }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());
+                    ex.printStackTrace();
                 }
             }
         }

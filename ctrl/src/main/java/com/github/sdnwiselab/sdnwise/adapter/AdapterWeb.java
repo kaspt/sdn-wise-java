@@ -312,6 +312,10 @@ public class AdapterWeb extends AbstractAdapter{
         @Override
         public void send(final byte[] data) {
             // Todo Find first, don't iterate over the hole list
+            log(Level.INFO,
+                    "send to web open client sockets:("
+                            + clientSockets.size()+
+                            ")");
             clientSockets.stream().forEach((sck) -> {
                 InetAdapterPacket packet = new InetAdapterPacket(data);
                 InetSocketAddress remoteaddress =
@@ -322,7 +326,13 @@ public class AdapterWeb extends AbstractAdapter{
                             && (packet.getClientPort()== remoteaddress.getPort())){
                         OutputStream out = sck.getOutputStream();
                         DataOutputStream dos = new DataOutputStream(out);
-                        dos.write(data);
+
+                        byte[] payload = packet.getPayload();
+                        byte[] response = new byte[payload.length +1];
+                        response[0] = (byte)payload.length;
+                        System.arraycopy(payload, 0, response, 1, payload.length);
+                        dos.write(response);
+
                     }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());

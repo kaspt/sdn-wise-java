@@ -48,6 +48,11 @@ public abstract class AbstractAdapter extends Observable implements Observer {
         ControlPlaneLogger.setupLogger("ADP");
     }
 
+    AbstractAdapter(String loggershortname){
+        this.active = false;
+        ControlPlaneLogger.setupLogger(loggershortname);
+    }
+
     /**
      * Returns the state of the adapter.
      *

@@ -20,6 +20,7 @@ import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
+import com.github.sdnwiselab.sdnwise.packet.DataPacket;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import com.github.sdnwiselab.sdnwise.packet.WebPacket;
@@ -62,6 +63,10 @@ public class Forwarding extends ControlPlaneLayer {
         ControlPlaneLogger.setupLogger(getLayerShortName());
     }
 
+    public final NodeAddress getSinkAddress(){
+        return sinkAddress;
+    }
+
     @Override
     protected void setupLayer() {
         //Notthing to do here
@@ -85,12 +90,13 @@ public class Forwarding extends ControlPlaneLayer {
     }
 
     private void managePacket_fromController(byte[] data){
-        log(Level.INFO, "\u2193" + Arrays.toString(data));
+        log(Level.INFO, "from contr" + Arrays.toString(data));
+        //log(Level.INFO, "\u2193" + Arrays.toString(data));
         getNodeAdapter().send(data);
     }
 
     private void managePacket_fromSDNWISE(NetworkPacket data){
-        if(data.getTyp() > 0){
+        if(data.getTyp() > 0 & data.getTyp() != NetworkPacket.WEB_REQUEST){
             log(Level.INFO, "sdn to contr"
                     + Arrays.toString(data.toByteArray()));
             for(AbstractAdapter upper: getUpper()){
@@ -99,9 +105,9 @@ public class Forwarding extends ControlPlaneLayer {
         }else {
             log(Level.INFO, "sdn to web"
                     + Arrays.toString(data.toByteArray()));
-            // Todo create Inet Adapterpacket
-            // Todo find correct adapter.
-            // send to web
+            InetAdapterPacket packet =
+                    packetManager.getInetPacket(new WebPacket(data));
+            getWebAdapter().send(packet.toByteArray());
         }
     }
 
@@ -109,43 +115,72 @@ public class Forwarding extends ControlPlaneLayer {
         log(Level.INFO, "web to sdn" + Arrays.toString(packet));
         InetAdapterPacket inetAdapterPacket = new InetAdapterPacket(packet);
 
-        WebPacket webPacket =
+        NetworkPacket webPacket =
                 packetManager.manageInetAdapterPacket(inetAdapterPacket);
         getNodeAdapter().send(webPacket.toByteArray());
     }
 
-    private PacketManager packetManager = new PacketManager();
+    private  PacketManager packetManager = new PacketManager();
 
     private class PacketManager{
 
-        private final int MAX_MESSAGE_PER_NODE = 255;
+        private final static int MAX_MESSAGE_PER_NODE = 255;
 
-        private Map<NodeAddress,
-                Pair<BitSet,
-                        List<MessageInfos>>> messageData = new HashMap<>();
+        private  Map<NodeAddress, Pair<BitSet, List<MessageInfos>>> messageData = new HashMap<>();
 
         private class MessageInfos{
-            byte messageID;
-            Instant timestamp;
-            byte[] inetAddapterPacket;
+            public byte messageID;
+            public Instant timestamp;
+            public byte[] inetAddapterPacket;
+
             public MessageInfos(final byte messageID,
                                 final byte[] inetAddapterPacket){
                 this.messageID = messageID;
                 this.inetAddapterPacket = inetAddapterPacket;
                 this.timestamp = Instant.now();
             }
+
+            public byte getMessageID() {
+                return messageID;
+            }
+
+            @Override
+            public String toString(){
+                return "mID:"+ messageID
+                        + "inet:["
+                        + Arrays.toString(inetAddapterPacket)+"]";
+            }
+
         }
 
-        public WebPacket manageInetAdapterPacket(InetAdapterPacket packet){
+        private void print_mappinfo(){
+            log(Level.INFO, "messageData.size: " + messageData.size());
+            for(NodeAddress naddr: messageData.keySet()){
+                log(Level.INFO, "map keys:" + naddr.toString());
+                log(Level.FINE, "fine:");
+                log(Level.INFO, "bitset:"
+                        + messageData.get(naddr).getValue0().toString());
 
-            NodeAddress address = mapping.getNodeAddress(packet.getSdnWiseAddress(),
+                for(MessageInfos minfo : messageData.get(naddr).getValue1()){
+                    log(Level.INFO, "Minof" + minfo.toString());
+                }
+            }
+            for(int i =messageData.size();i > 0;i--){
+
+                log(Level.INFO, "messageData.size: " + messageData.size());
+
+            }
+        }
+
+        public NetworkPacket manageInetAdapterPacket(InetAdapterPacket packet){
+            print_mappinfo();
+            NodeAddress address = mapping.getNodeAddress(
+                    packet.getSdnWiseAddress(),
                     packet.getSdnWisePort());
             if(address == null){
                 throw new IllegalArgumentException("node address is not valid.");
             }
-
             int netId = mapping.getNodeNet(address);
-
             Pair<BitSet, List<MessageInfos>> p = messageData.get(address);
             BitSet bitSet = null;
             if(p == null){
@@ -176,18 +211,35 @@ public class Forwarding extends ControlPlaneLayer {
                     address,
                     (byte)messageID,
                     packet.getPayload());
+            webPacket.setNxh(sinkAddress);
 
             return webPacket;
         }
-        public InetAdapterPacket getInetPacket(byte messageID,
-                                               NodeAddress src,
-                                               byte[] payload){
-            // TODo get infos from map ,remove message from map,
-
-            InetAdapterPacket packet = new InetAdapterPacket(payload, (byte)64);
 
 
-            return packet;
+        public InetAdapterPacket getInetPacket(WebPacket data){
+            print_mappinfo();
+            NodeAddress dest = data.getSrc();
+            byte messageID = data.getMessageID();
+            byte[] payload = data.getData();
+
+            Pair<BitSet, List<MessageInfos>> pair = messageData.get(dest);
+            pair.getValue0().clear(messageID);
+
+            List<MessageInfos> infosList = pair.getValue1();
+
+            MessageInfos mymessage = infosList
+                    .stream()
+                    .filter(mess -> mess.getMessageID() == messageID)
+                    .findFirst().orElse(null);
+
+            byte[] packet = mymessage.inetAddapterPacket;
+            byte[] bytes = new byte[packet.length + payload.length];
+            System.arraycopy(packet, 0, bytes, 0, packet.length);
+            System.arraycopy(payload, 0, bytes, packet.length, payload.length);
+            infosList.remove(mymessage);
+
+            return new InetAdapterPacket(bytes);
         }
     }
 

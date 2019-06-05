@@ -17,11 +17,12 @@ class WebPacketTest {
                 new NodeAddress("3.4"),
                 (byte)5,
                 payload);
-
-    
+        assertEquals(0, webPacket.getNet());
+        assertEquals(new NodeAddress("1.2"), webPacket.getSrc());
+        assertEquals(new NodeAddress("3.4"), webPacket.getDst());
+        assertEquals(5, webPacket.getMessageID());
+        //assertArrayEquals(payload, webPacket.getPayload());
     }
-
-
 
     @Test
     void setMessageID() {
