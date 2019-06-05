@@ -23,7 +23,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class MappingStatic extends AbstractMapping {
@@ -68,7 +70,20 @@ public class MappingStatic extends AbstractMapping {
                     .findFirst().get();
 
         }catch (NoSuchElementException ex){
-            //Todo make log entry
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public NodeAddress getNodeAddress(byte[] ipaddr, int port) {
+        try {
+            InetSocketAddress address = new InetSocketAddress(
+                    InetAddress.getByAddress(ipaddr),
+                    port);
+            return getNodeAddress(address);
+        }catch (UnknownHostException ex){
+            ex.printStackTrace();
             return null;
         }
     }
@@ -76,5 +91,10 @@ public class MappingStatic extends AbstractMapping {
     @Override
     public InetSocketAddress getSocketAddress(NodeAddress addr) {
         return lookuptable.get(addr);
+    }
+
+    @Override
+    public int getNodeNet(NodeAddress addr) {
+        return 1;
     }
 }

@@ -58,7 +58,9 @@ public class NetworkPacket implements Cloneable {
             RESPONSE = 4,
             OPEN_PATH = 5,
             CONFIG = 6,
-            REG_PROXY = 7;
+            REG_PROXY = 7,
+            WEB_REQUEST = 8;
+
 
     /**
      * An SDN-WISE header is always 10 bytes long.
@@ -705,6 +707,7 @@ public class NetworkPacket implements Cloneable {
         if (i + DFLT_HDR_LEN < getLen()) {
             return data[DFLT_HDR_LEN + i];
         } else {
+            System.out.println(Arrays.toString(data));
             throw new IllegalArgumentException("Index cannot be greater than "
                     + "the maximum payload size");
         }

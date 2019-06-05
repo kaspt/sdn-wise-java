@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 SDN-WISE
+ * Copyright (C) 2019 SDN-WISE
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +20,8 @@ import com.github.sdnwiselab.sdnwise.adapter.AdapterTcp;
 import com.github.sdnwiselab.sdnwise.adapter.AdapterWeb;
 import com.github.sdnwiselab.sdnwise.configuration.Configurator;
 import com.github.sdnwiselab.sdnwise.loader.SdnWise;
-import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
-import com.github.sdnwiselab.sdnwise.mapping.MappingFactory;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,17 +32,8 @@ public class AdaptationWebFactoryTest {
     void getAdaptationWeb(){
         InputStream is = null;
 
-        is = SdnWise.class.getResourceAsStream("/configadaptaionTest.json");
+        is = SdnWise.class.getResourceAsStream("/configTestFile.json");
         Configurator conf = Configurator.load(is);
-
-        //when(spyed_ABC_ClassObject.isValidUser(Mockito.anyString())).thenReturn(true);
-        //UserSessionPool mockConnectionPool = Mockito.mock(UserSessionPool.class);
-        MappingFactory mappingFactory = Mockito.mock(MappingFactory.class);
-        AbstractMapping mappingMock = Mockito.mock(AbstractMapping.class);
-//        PowerMockito.mockStatic(MappingFactory.class);
-
-
-
 
 
         AdaptationWeb adaptation =

@@ -24,6 +24,9 @@ import java.net.*;
 import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.MAX_PACKET_LENGTH;
 
 public class AdapterWeb extends AbstractAdapter{
     /**
@@ -73,6 +76,7 @@ public class AdapterWeb extends AbstractAdapter{
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
         backlog = Integer.parseInt(conf.get("BACKLOG"));
+        adapterIdentifier = conf.get("ADAPTER_ID");
         try {
             ip_bytearr = InetAddress.getByName(ip).getAddress();
             if (InetAddress.getByName(ip) instanceof Inet4Address){
@@ -88,11 +92,16 @@ public class AdapterWeb extends AbstractAdapter{
         }
     }
 
-    public AdapterWeb(InetSocketAddress address, int backlog, boolean isServer){
+    public AdapterWeb(InetSocketAddress address,
+                      int backlog,
+                      boolean isServer){
         this.isServer = isServer;
         this.backlog = backlog;
         port = address.getPort();
-        ip = address.getAddress().getAddress().toString();
+
+        ip = address.getAddress().getHostAddress();
+        this.adapterIdentifier = address.toString();
+        //log(Level.INFO, this.adapterIdentifier);
         ip_bytearr = address.getAddress().getAddress();
         try {
             ip_bytearr = InetAddress.getByName(ip).getAddress();
@@ -145,7 +154,7 @@ public class AdapterWeb extends AbstractAdapter{
                 .setSdnWiseIPVersion(this.ipVersion)
                 .setSdnWisePort(this.port)
                 .setSdnWiseAddress(this.ip_bytearr);
-        super.update(o, arg);
+        super.update(o, packet.toByteArray());
     }
 
     public boolean identifyAddapter(InetAdapterPacket packet){
@@ -156,6 +165,7 @@ public class AdapterWeb extends AbstractAdapter{
             }
         }
         return false;
+
     }
 
     /**
@@ -302,6 +312,10 @@ public class AdapterWeb extends AbstractAdapter{
         @Override
         public void send(final byte[] data) {
             // Todo Find first, don't iterate over the hole list
+            log(Level.INFO,
+                    "send to web open client sockets:("
+                            + clientSockets.size()+
+                            ")");
             clientSockets.stream().forEach((sck) -> {
                 InetAdapterPacket packet = new InetAdapterPacket(data);
                 InetSocketAddress remoteaddress =
@@ -312,7 +326,13 @@ public class AdapterWeb extends AbstractAdapter{
                             && (packet.getClientPort()== remoteaddress.getPort())){
                         OutputStream out = sck.getOutputStream();
                         DataOutputStream dos = new DataOutputStream(out);
-                        dos.write(data);
+
+                        byte[] payload = packet.getPayload();
+                        byte[] response = new byte[payload.length +1];
+                        response[0] = (byte)payload.length;
+                        System.arraycopy(payload, 0, response, 1, payload.length);
+                        dos.write(response);
+
                     }
                 } catch (IOException ex) {
                     log(Level.SEVERE, ex.toString());
@@ -345,26 +365,29 @@ public class AdapterWeb extends AbstractAdapter{
                 clientSocket = socket;
             }
 
+            private byte[] getPayload(DataInputStream dis) throws IOException{
+
+                int len = Byte.toUnsignedInt(dis.readByte());
+                if(len > 0) {
+                    byte[] payload = new byte[len];
+                    dis.readFully(payload, 0, len);
+                    return payload;
+                }else {
+                    throw new IllegalArgumentException(
+                            "received packet has illegal length");
+                }
+            }
+
             @Override
             public void run() {
                 try {
                     InputStream in = clientSocket.getInputStream();
                     DataInputStream dis = new DataInputStream(in);
                     while (!isStopped()) {
-
-                        int len = Byte.toUnsignedInt(dis.readByte());
-                        byte[] payload;
-                        if(len > 0) {
-                            payload = new byte[len];
-                            dis.readFully(payload, 0, len );
-                        }else {
-                            throw new IllegalArgumentException(
-                                    "received packet has illegal length");
-                        }
+                        byte[] payload = getPayload(dis);
 
                         InetSocketAddress cliadr =
                                 (InetSocketAddress)clientSocket.getRemoteSocketAddress();
-
                         byte clientIpvers;
                         if (cliadr.getAddress() instanceof Inet4Address){
                             clientIpvers = (byte) 4;
@@ -382,8 +405,16 @@ public class AdapterWeb extends AbstractAdapter{
                         setChanged();
                         notifyObservers(data);
                     }
-                } catch (IOException ex) {
-                    log(Level.SEVERE, ex.toString());
+                } catch (IOException ex) {}
+                finally {
+                    try {
+                        clientSocket.shutdownOutput();
+                        clientSocket.shutdownInput();
+                        clientSocket.close();
+                        log(Level.INFO, "client is closed");
+                    }catch (IOException ioex){
+                        log(Level.INFO, "error closing client socket");
+                    }
                 }
             }
         }

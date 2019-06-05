@@ -38,12 +38,19 @@ public abstract class AbstractAdapter extends Observable implements Observer {
 
     private boolean active;
 
+    protected String adapterIdentifier= null;
+
     /**
      * Creates an AbstractAdapter.
      */
     AbstractAdapter() {
         this.active = false;
         ControlPlaneLogger.setupLogger("ADP");
+    }
+
+    AbstractAdapter(String loggershortname){
+        this.active = false;
+        ControlPlaneLogger.setupLogger(loggershortname);
     }
 
     /**
@@ -102,4 +109,9 @@ public abstract class AbstractAdapter extends Observable implements Observer {
     protected final void log(final Level level, final String msg) {
         LOGGER.log(level, msg);
     }
+
+    public String getAdapterIdentifier(){
+        return adapterIdentifier;
+    }
+
 }

@@ -20,6 +20,30 @@
       "BACKLOG": "5"
     }
   },
+  "forwarding": {
+    "lower": [
+      {
+        "TYPE": "TCP",
+        "IS_SERVER":"TRUE",
+        "IP": "localhost",
+        "PORT": "9991"
+      },
+      {
+        "TYPE": "TCP",
+        "IS_SERVER":"TRUE",
+        "IP": "localhost",
+        "PORT": "9991"
+      }
+    
+    ],
+    "upper": [
+      {
+        "TYPE": "TCP",
+        "IS_SERVER":"TRUE",
+        "IP":"localhost",
+        "PORT": "8888"
+      }]
+  },
   "mapping": {
     "resource": {
       "TYPE": "STATIC",

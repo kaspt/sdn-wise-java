@@ -52,6 +52,8 @@ public final class ControlPlaneLogger {
                 flush();
             }
         };
-        logger.addHandler(h);
+        if(logger.getHandlers().length == 0) {
+            logger.addHandler(h);
+        }
     }
 }

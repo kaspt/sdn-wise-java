@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 
 import java.io.*;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -82,6 +83,22 @@ class AdapterWebTest {
     }
 
     @Test
+    void dynamicConstructor(){
+        InetAddress address = null;
+        try {
+            address = InetAddress.getByName(hostip);
+        }catch (UnknownHostException ex){
+            System.out.println("invalid host ip" + hostip);
+        }
+        InetSocketAddress socketAddress = new InetSocketAddress(address,
+                8888);
+        AdapterWeb dut = new AdapterWeb(socketAddress,5,true);
+
+    }
+
+
+
+    @Test
     void send() throws IOException {
         selfmockedObserver = new myObserverMock();
         dut.addObserver(selfmockedObserver);
@@ -95,7 +112,7 @@ class AdapterWebTest {
         System.arraycopy(data, 1, exp_payload, 0, exp_payload.length);
 
         client.send(data);
-        verify(observer, timeout(1000).times(1))
+        verify(observer, timeout(2000).times(1))
                 .update(Mockito.<Observable>any(), Mockito.<Object>any());
 
         byte[] received_array =  client.receiveInetPacket();

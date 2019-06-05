@@ -71,9 +71,11 @@ public class AdapterTcp extends AbstractAdapter {
      * @param conf contains the serial port configuration data.
      */
     public AdapterTcp(final Map<String, String> conf) {
+        super("TCP");
         isServer = Boolean.parseBoolean(conf.get("IS_SERVER"));
         ip = conf.get("IP");
         port = Integer.parseInt(conf.get("PORT"));
+        adapterIdentifier = conf.get("ADAPTER_ID");
     }
 
     @Override
@@ -99,7 +101,7 @@ public class AdapterTcp extends AbstractAdapter {
     }
 
     @Override
-    public final void send(final byte[] data) {
+    public void send(final byte[] data) {
         if (isActive()) {
             tcpElement.send(data);
         }
@@ -157,7 +159,7 @@ public class AdapterTcp extends AbstractAdapter {
         private Socket socket;
 
         @Override
-        public void send(final byte[] data) {
+        public final void send(final byte[] data) {
             try {
                 OutputStream out = socket.getOutputStream();
                 DataOutputStream dos = new DataOutputStream(out);

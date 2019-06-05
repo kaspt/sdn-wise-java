@@ -42,10 +42,9 @@ class MappingStaticTest {
         dut = new MappingStatic(file);
     }
 
+
     @Test
     void getAllAddresses() {
-
-
         List<InetSocketAddress> expected = new LinkedList<>();
         expected.add(new InetSocketAddress("fe80::250:56ff:fec0:1", 9997));
         expected.add(new InetSocketAddress("fe81::250:56ff:fec0:2", 9998));
@@ -82,6 +81,18 @@ class MappingStaticTest {
     }
 
     @Test
+    void getNodeAddress_ip_port() {
+        InetSocketAddress req_addr =
+                new InetSocketAddress("fe80::250:56ff:fec0:1", 9997);
+        NodeAddress expected = new NodeAddress(1,1);
+        byte[] addrbytearr = req_addr.getAddress().getAddress();
+        NodeAddress result = dut.getNodeAddress(
+                req_addr.getAddress().getAddress(),
+                req_addr.getPort());
+        assertEquals(expected, result);
+    }
+
+    @Test
     void getSocketAddress() {
         InetSocketAddress expected =
                 new InetSocketAddress("fe80::250:56ff:fec0:1", 9997);
@@ -99,7 +110,7 @@ class MappingStaticTest {
     void MappingFactory(){
         InputStream is = null;
 
-        is = SdnWise.class.getResourceAsStream("/configadaptaionTest.json");
+        is = SdnWise.class.getResourceAsStream("/configTestFile.json");
         Configurator conf = Configurator.load(is);
         AbstractMapping mapping =
                 MappingFactory.getMapping(conf);
