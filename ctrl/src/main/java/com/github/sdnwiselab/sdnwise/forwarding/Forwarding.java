@@ -126,7 +126,11 @@ public class Forwarding extends ControlPlaneLayer {
 
         private final static int MAX_MESSAGE_PER_NODE = 255;
 
-        private  Map<NodeAddress, Pair<BitSet, List<MessageInfos>>> messageData = new HashMap<>();
+        private final static int TIMEOUT_FOR_NODE_RESPONCE = 10;
+
+        private volatile Map<NodeAddress,
+                Pair<BitSet, List<MessageInfos>>>
+                messageData = new HashMap<>();
 
         private class MessageInfos{
             public byte messageID;
@@ -157,22 +161,18 @@ public class Forwarding extends ControlPlaneLayer {
             log(Level.INFO, "messageData.size: " + messageData.size());
             for(NodeAddress naddr: messageData.keySet()){
                 log(Level.INFO, "map keys:" + naddr.toString());
-                log(Level.FINE, "fine:");
                 log(Level.INFO, "bitset:"
                         + messageData.get(naddr).getValue0().toString());
-
                 for(MessageInfos minfo : messageData.get(naddr).getValue1()){
                     log(Level.INFO, "Minof" + minfo.toString());
                 }
             }
             for(int i =messageData.size();i > 0;i--){
-
                 log(Level.INFO, "messageData.size: " + messageData.size());
-
             }
         }
 
-        public NetworkPacket manageInetAdapterPacket(InetAdapterPacket packet){
+        public synchronized NetworkPacket manageInetAdapterPacket(InetAdapterPacket packet){
             print_mappinfo();
             NodeAddress address = mapping.getNodeAddress(
                     packet.getSdnWiseAddress(),
@@ -217,7 +217,7 @@ public class Forwarding extends ControlPlaneLayer {
         }
 
 
-        public InetAdapterPacket getInetPacket(WebPacket data){
+        public synchronized InetAdapterPacket getInetPacket(WebPacket data){
             print_mappinfo();
             NodeAddress dest = data.getSrc();
             byte messageID = data.getMessageID();

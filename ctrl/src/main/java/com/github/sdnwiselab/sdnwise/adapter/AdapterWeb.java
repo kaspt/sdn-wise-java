@@ -16,6 +16,7 @@
  */
 package com.github.sdnwiselab.sdnwise.adapter;
 
+import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 
@@ -331,6 +332,8 @@ public class AdapterWeb extends AbstractAdapter{
                         byte[] response = new byte[payload.length +1];
                         response[0] = (byte)payload.length;
                         System.arraycopy(payload, 0, response, 1, payload.length);
+                        ControlPlaneLogger.LogTimeStamp("web_out"
+                                + Arrays.toString(payload));
                         dos.write(response);
 
                     }
@@ -371,6 +374,8 @@ public class AdapterWeb extends AbstractAdapter{
                 if(len > 0) {
                     byte[] payload = new byte[len];
                     dis.readFully(payload, 0, len);
+                    ControlPlaneLogger.LogTimeStamp("web_in"
+                            + Arrays.toString(payload));
                     return payload;
                 }else {
                     throw new IllegalArgumentException(

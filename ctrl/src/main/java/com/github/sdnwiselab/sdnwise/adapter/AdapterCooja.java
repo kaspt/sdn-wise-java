@@ -16,6 +16,7 @@
  */
 package com.github.sdnwiselab.sdnwise.adapter;
 
+import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 
 import java.io.*;
@@ -73,7 +74,7 @@ public class AdapterCooja extends AbstractAdapter {
 
 
     public boolean identifyAdapter(InetAddress arg, int port){
-return false;
+        return false;
     }
 
     @Override
@@ -255,6 +256,10 @@ return false;
                     DataOutputStream dos = new DataOutputStream(out);
 
                     log(Level.INFO, "\u2193cooja" + Arrays.toString(data));
+                    if(new NetworkPacket(data).getTyp() == NetworkPacket.WEB_REQUEST){
+                        ControlPlaneLogger.LogTimeStamp("cooja_out"
+                                + Arrays.toString(data));
+                    }
                     dos.write(data);
                 } catch (IOException ex) {
 
@@ -266,6 +271,9 @@ return false;
             });
 
             if (!removableSockets.isEmpty()) {
+                log(Level.INFO, "remove cooja removableSockets:"
+                        + "removableSockets size: " + removableSockets.size()
+                        + "clientSockets size:" + clientSockets.size());
                 clientSockets.removeAll(removableSockets);
                 removableSockets.clear();
             }
@@ -298,6 +306,10 @@ return false;
                     while (!isStopped()) {
                         byte[] data = new NetworkPacket(bis).toByteArray();
                         if (data.length > 0) {
+                            if(new NetworkPacket(data).getTyp() == NetworkPacket.WEB_REQUEST){
+                                ControlPlaneLogger.LogTimeStamp("cooja_in"
+                                        + Arrays.toString(data));
+                            }
                             setChanged();
                             notifyObservers(data);
                         }

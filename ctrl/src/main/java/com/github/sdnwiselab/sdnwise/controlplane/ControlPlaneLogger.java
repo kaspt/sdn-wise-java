@@ -16,10 +16,14 @@
  */
 package com.github.sdnwiselab.sdnwise.controlplane;
 
+import com.github.sdnwiselab.sdnwise.util.FileLogFormatter;
 import com.github.sdnwiselab.sdnwise.util.SimplerFormatter;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.StreamHandler;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.logging.*;
 
 /**
  * Models a logger for each ControlPlane layer.
@@ -34,6 +38,12 @@ public final class ControlPlaneLogger {
     private ControlPlaneLogger() {
         // Nothing to do here
     }
+
+    /**
+     * To avoid garbage collector.
+     */
+    private final static Logger logger = setupFileLogger();
+
 
     /**
      * Creates a logger using the SimplerFormatter formatter.
@@ -56,4 +66,30 @@ public final class ControlPlaneLogger {
             logger.addHandler(h);
         }
     }
+
+    public static synchronized void LogTimeStamp(String message){
+        logger.log(Level.INFO, message);
+    }
+
+    private static Logger setupFileLogger(){
+        Logger logger = Logger.getLogger("timestamp");
+        try {
+            FileHandler fh = new FileHandler(
+                    Paths.get("logs")
+                            + File.separator
+                            + "webpacketsinout-"
+                            + LocalDate.now().toString()
+                            + ".log");
+            fh.setFormatter(new FileLogFormatter());
+            logger.addHandler(fh);
+
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return logger;
+    }
+
+
 }
