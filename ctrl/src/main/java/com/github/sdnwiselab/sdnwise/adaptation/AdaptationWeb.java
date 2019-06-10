@@ -7,8 +7,6 @@ import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;

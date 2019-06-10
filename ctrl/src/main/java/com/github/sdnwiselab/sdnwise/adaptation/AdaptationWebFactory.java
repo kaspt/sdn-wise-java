@@ -16,7 +16,10 @@
  */
 package com.github.sdnwiselab.sdnwise.adaptation;
 
-import com.github.sdnwiselab.sdnwise.adapter.*;
+import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterTcp;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterUdp;
+import com.github.sdnwiselab.sdnwise.adapter.AdapterWeb;
 import com.github.sdnwiselab.sdnwise.configuration.ConfigAdaptationWeb;
 import com.github.sdnwiselab.sdnwise.configuration.Configurator;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;

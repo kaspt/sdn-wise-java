@@ -20,15 +20,16 @@ import com.github.sdnwiselab.sdnwise.adapter.AbstractAdapter;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLayer;
 import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.mapping.AbstractMapping;
-import com.github.sdnwiselab.sdnwise.packet.DataPacket;
 import com.github.sdnwiselab.sdnwise.packet.InetAdapterPacket;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import com.github.sdnwiselab.sdnwise.packet.WebPacket;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
-import org.javatuples.Pair;
+import net.jodah.expiringmap.ExpirationListener;
+import net.jodah.expiringmap.ExpiringMap;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,25 +121,41 @@ public class Forwarding extends ControlPlaneLayer {
         getNodeAdapter().send(webPacket.toByteArray());
     }
 
-    private  PacketManager packetManager = new PacketManager();
+    private void closeClientConnection(InetAdapterPacket data){
+        data.setCommandClosePacket(true);
+        getWebAdapter().send(data.toByteArray());
+    }
+
+    private  PacketManager packetManager = new PacketManager(this::closeClientConnection);
+
+    private interface Callback {
+        void callback(InetAdapterPacket packet);
+    }
 
     private class PacketManager{
 
         private final static int MAX_MESSAGE_PER_NODE = 255;
 
-        private final static int TIMEOUT_FOR_NODE_RESPONCE = 10;
+        private final static int TIMEOUT_FOR_NODE_RESPONCE = 60;
+        private final TimeUnit TIMEOUTUNIT_FOR_NODE_RESPONCE = TimeUnit.SECONDS;
 
-        private volatile Map<NodeAddress,
-                Pair<BitSet, List<MessageInfos>>>
+        private volatile Map<NodeAddress,Map<Integer, MessageInfo>>
                 messageData = new HashMap<>();
 
-        private class MessageInfos{
+        private final Callback closeClient;
+
+        public PacketManager(Callback closeClientCallback){
+            closeClient = closeClientCallback;
+        }
+
+        private class MessageInfo {
             public byte messageID;
             public Instant timestamp;
             public byte[] inetAddapterPacket;
 
-            public MessageInfos(final byte messageID,
-                                final byte[] inetAddapterPacket){
+
+            public MessageInfo(final byte messageID,
+                               final byte[] inetAddapterPacket){
                 this.messageID = messageID;
                 this.inetAddapterPacket = inetAddapterPacket;
                 this.timestamp = Instant.now();
@@ -147,30 +164,32 @@ public class Forwarding extends ControlPlaneLayer {
             public byte getMessageID() {
                 return messageID;
             }
-
             @Override
             public String toString(){
-                return "mID:"+ messageID
-                        + "inet:["
-                        + Arrays.toString(inetAddapterPacket)+"]";
+                return new StringBuilder().append("(mid[")
+                        .append(messageID).append("] inet[")
+                        .append(Arrays.toString(inetAddapterPacket)).append("])")
+                        .toString();
             }
 
         }
 
         private void print_mappinfo(){
-            log(Level.INFO, "messageData.size: " + messageData.size());
-            for(NodeAddress naddr: messageData.keySet()){
-                log(Level.INFO, "map keys:" + naddr.toString());
-                log(Level.INFO, "bitset:"
-                        + messageData.get(naddr).getValue0().toString());
-                for(MessageInfos minfo : messageData.get(naddr).getValue1()){
-                    log(Level.INFO, "Minof" + minfo.toString());
+            StringBuilder sb = new StringBuilder();
+            sb.append("|");
+            for( NodeAddress nodeAddress :messageData.keySet()){
+                sb.append(nodeAddress).append("\t|\n");
+                Map<Integer, MessageInfo> message_map = messageData.get(nodeAddress);
+                for(Integer ID : message_map.keySet()){
+                    sb.append("\t[").append(ID).append("][")
+                            .append(message_map.get(ID).toString())
+                            .append("]\n");
                 }
+                sb.append("\n----------------------------------------------");
             }
-            for(int i =messageData.size();i > 0;i--){
-                log(Level.INFO, "messageData.size: " + messageData.size());
-            }
+            log(Level.INFO, sb.toString());
         }
+
 
         public synchronized NetworkPacket manageInetAdapterPacket(InetAdapterPacket packet){
             print_mappinfo();
@@ -178,33 +197,41 @@ public class Forwarding extends ControlPlaneLayer {
                     packet.getSdnWiseAddress(),
                     packet.getSdnWisePort());
             if(address == null){
+                closeClient.callback(packet);
                 throw new IllegalArgumentException("node address is not valid.");
             }
             int netId = mapping.getNodeNet(address);
-            Pair<BitSet, List<MessageInfos>> p = messageData.get(address);
-            BitSet bitSet = null;
-            if(p == null){
-                messageData.put(address,
-                        new Pair<BitSet, List<MessageInfos>>(
-                                new BitSet(MAX_MESSAGE_PER_NODE),
-                                new ArrayList<>()));
-                bitSet = messageData.get(address).getValue0();
-            }else {
-                bitSet = p.getValue0();
+            Map<Integer, MessageInfo> p = messageData.get(address);
+
+            if(p==null){
+                Map<Integer, MessageInfo> messageMap = ExpiringMap.builder()
+                        .expiration(TIMEOUT_FOR_NODE_RESPONCE, TIMEOUTUNIT_FOR_NODE_RESPONCE)
+                        .expirationListener(new ExpirationListener<Integer, MessageInfo>() {
+                            public void expired(Integer key, MessageInfo value) {
+                                closeClient.callback(
+                                        new InetAdapterPacket(value.inetAddapterPacket));
+                                log(Level.INFO,"timeout..." + key + ":" + value);
+                            }
+                        })
+                        .build();
+                messageData.put(address,messageMap);
+                p = messageData.get(address);
             }
-            int messageID = bitSet.nextClearBit(0);
+
+            int messageID = 0;
+            while (p.containsKey(messageID)){
+                messageID = messageID +1;
+            }
             if(messageID < MAX_MESSAGE_PER_NODE){
-                bitSet.set(messageID);
-                MessageInfos messageInfo = new MessageInfos((byte)messageID,
+                MessageInfo messageInfo = new MessageInfo((byte)messageID,
                         Arrays.copyOfRange(packet.toByteArray(), 0,
                                 InetAdapterPacket.HEADER_LENGTH));
-                messageData.get(address).getValue1().add(messageInfo);
+                p.put(messageID, messageInfo);
             }else {
                 // Todo handle message overflow
+                closeClient.callback(packet);
                 throw new IllegalArgumentException("no free messages IDs");
             }
-            byte[] payload = packet.getPayload();
-
 
             WebPacket webPacket = new WebPacket(netId,
                     sinkAddress,
@@ -216,28 +243,21 @@ public class Forwarding extends ControlPlaneLayer {
             return webPacket;
         }
 
-
         public synchronized InetAdapterPacket getInetPacket(WebPacket data){
+            log(Level.INFO, "handle packet form sdn network");
             print_mappinfo();
             NodeAddress dest = data.getSrc();
-            byte messageID = data.getMessageID();
+            int messageID = data.getMessageID();
             byte[] payload = data.getData();
 
-            Pair<BitSet, List<MessageInfos>> pair = messageData.get(dest);
-            pair.getValue0().clear(messageID);
-
-            List<MessageInfos> infosList = pair.getValue1();
-
-            MessageInfos mymessage = infosList
-                    .stream()
-                    .filter(mess -> mess.getMessageID() == messageID)
-                    .findFirst().orElse(null);
+            Map<Integer, MessageInfo> messageMap = messageData.get(dest);
+            MessageInfo mymessage = messageMap.get(messageID);
 
             byte[] packet = mymessage.inetAddapterPacket;
             byte[] bytes = new byte[packet.length + payload.length];
             System.arraycopy(packet, 0, bytes, 0, packet.length);
             System.arraycopy(payload, 0, bytes, packet.length, payload.length);
-            infosList.remove(mymessage);
+            messageMap.remove(messageID);
 
             return new InetAdapterPacket(bytes);
         }

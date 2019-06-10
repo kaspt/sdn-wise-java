@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.LEN_INDEX;
 import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.MAX_PACKET_LENGTH;
 
 public class AdapterWeb extends AbstractAdapter{
@@ -315,7 +316,7 @@ public class AdapterWeb extends AbstractAdapter{
             // Todo Find first, don't iterate over the hole list
             log(Level.INFO,
                     "send to web open client sockets:("
-                            + clientSockets.size()+
+                            + clientSockets.size() +
                             ")");
             clientSockets.stream().forEach((sck) -> {
                 InetAdapterPacket packet = new InetAdapterPacket(data);
@@ -325,16 +326,23 @@ public class AdapterWeb extends AbstractAdapter{
                     if(Arrays.equals(packet.getClientAddress(),
                             remoteaddress.getAddress().getAddress())
                             && (packet.getClientPort()== remoteaddress.getPort())){
-                        OutputStream out = sck.getOutputStream();
-                        DataOutputStream dos = new DataOutputStream(out);
 
-                        byte[] payload = packet.getPayload();
-                        byte[] response = new byte[payload.length +1];
-                        response[0] = (byte)payload.length;
-                        System.arraycopy(payload, 0, response, 1, payload.length);
-                        ControlPlaneLogger.LogTimeStamp("web_out"
-                                + Arrays.toString(payload));
-                        dos.write(response);
+                        if(packet.isCommandClosePacket()){
+                            log(Level.INFO, "close client socket");
+                            sck.close();
+                            removableSockets.add(sck);
+                        }else {
+                            OutputStream out = sck.getOutputStream();
+                            DataOutputStream dos = new DataOutputStream(out);
+
+                            byte[] payload = packet.getPayload();
+                            byte[] response = new byte[payload.length + 1];
+                            response[0] = (byte) payload.length;
+                            System.arraycopy(payload, 0, response, 1, payload.length);
+                            ControlPlaneLogger.LogTimeStamp("web_out"
+                                    + Arrays.toString(payload));
+                            dos.write(response);
+                        }
 
                     }
                 } catch (IOException ex) {

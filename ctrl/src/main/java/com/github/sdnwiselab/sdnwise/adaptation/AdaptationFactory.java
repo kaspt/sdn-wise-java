@@ -19,6 +19,7 @@ package com.github.sdnwiselab.sdnwise.adaptation;
 import com.github.sdnwiselab.sdnwise.adapter.*;
 import com.github.sdnwiselab.sdnwise.configuration.ConfigAdaptation;
 import com.github.sdnwiselab.sdnwise.configuration.Configurator;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;

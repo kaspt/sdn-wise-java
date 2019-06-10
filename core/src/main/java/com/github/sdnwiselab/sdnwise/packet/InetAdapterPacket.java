@@ -1,8 +1,6 @@
 package com.github.sdnwiselab.sdnwise.packet;
 
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import static com.github.sdnwiselab.sdnwise.packet.NetworkPacket.MAX_PACKET_LENGTH;
@@ -21,7 +19,10 @@ public class InetAdapterPacket {
     public static final byte IPv6ADDRES_LEN = 16,
             PORT_LEN = 2,
             IPVERSION_LEN = 1,
-            HEADER_LENGTH = 40;
+            COMMAND_LEN = 1,
+            HEADER_LENGTH = 41,
+            COMMAND_NOT_SET = 0,
+            COMMAND_CLOSE = 1;
 
     public static final int PORTMAX_SIZE = 65535;
 
@@ -36,6 +37,7 @@ public class InetAdapterPacket {
             IPVERS_SDNWISE_INDEX = 21,
             PORT_SDNWISE_INDEX = 22,
             IPADDR_SDNWISE_INDEX = 24,
+            COMMAND_INDEX = 40,
             PAYLOAD_INDEX = (HEADER_LENGTH);
 
     private final byte[] data;
@@ -199,6 +201,15 @@ public class InetAdapterPacket {
 
     public final byte[] getPayload(){
         return Arrays.copyOfRange(data, HEADER_LENGTH, getLen());
+    }
+
+    public boolean isCommandClosePacket(){
+        return (data[COMMAND_INDEX] == COMMAND_CLOSE)?true:false;
+    }
+
+    public InetAdapterPacket setCommandClosePacket(boolean b){
+        data[COMMAND_INDEX] = b? COMMAND_CLOSE : COMMAND_NOT_SET;
+        return this;
     }
 
 
