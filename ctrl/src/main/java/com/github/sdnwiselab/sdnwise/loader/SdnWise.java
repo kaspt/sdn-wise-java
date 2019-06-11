@@ -80,11 +80,12 @@ public final class SdnWise {
         InputStream is = null;
 
         if (args.length > 0) {
-            try {
-                is = new FileInputStream(args[0]);
-            } catch (FileNotFoundException ex) {
-                Logger.getGlobal().log(Level.SEVERE, ex.toString());
-            }
+            is = SdnWise.class.getResourceAsStream(args[0]);
+//            try {
+//                is = new FileInputStream(args[0]);
+//            } catch (FileNotFoundException ex) {
+//                Logger.getGlobal().log(Level.SEVERE, ex.toString());
+//            }
         } else {
             is = SdnWise.class.getResourceAsStream(CONFIG_FILE);
         }
