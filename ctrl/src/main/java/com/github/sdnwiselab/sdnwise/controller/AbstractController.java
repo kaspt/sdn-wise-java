@@ -231,7 +231,7 @@ public abstract class AbstractController extends ControlPlaneLayer implements
             final List<AbstractAdapter> lower,
             final NetworkGraph network) {
         super("CTRL", lower, null);
-        sinkAddress = new NodeAddress("0.1"); //TODO adopt
+        sinkAddress = new NodeAddress("0.67");//new NodeAddress("0.1"); //TODO adopt
         ControlPlaneLogger.setupLogger(getLayerShortName());
         myId = id;
         networkGraph = network;

@@ -22,7 +22,7 @@ import com.github.sdnwiselab.sdnwise.util.NodeAddress;
  * This class models a Web packet. The web packet is used for application
  * layer messages.
  *
- * @author Sebastiano Milardo
+ * @author Tobias Kasper
  */
 public class WebPacket extends NetworkPacket {
 

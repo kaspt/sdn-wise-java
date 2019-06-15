@@ -29,6 +29,7 @@ import com.github.sdnwiselab.sdnwise.mapping.MappingFactory;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class ForwardingFactory {
 
@@ -39,13 +40,17 @@ public class ForwardingFactory {
 
     public static final Forwarding getForwarding(final Configurator c){
         conf = c.getForwarding();
-
         AbstractMapping mapping = MappingFactory.getMapping(c);
-
+        String sinkAddress = "0.67";
         return new Forwarding(
                 getAdapters(conf.getLowers()),
                 getAdapters(conf.getUppers()),
-                mapping);
+                mapping,
+                sinkAddress,
+                Integer.parseInt(conf.getTimeout().get("TIME")),
+                TimeUnit.valueOf(conf.getTimeout().get("TIMEUNIT")),
+                Integer.parseInt(conf.getTimeout().get("REPETITION"))
+        );
     }
 
     /**

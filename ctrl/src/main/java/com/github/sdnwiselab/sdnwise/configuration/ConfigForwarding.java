@@ -16,5 +16,17 @@
  */
 package com.github.sdnwiselab.sdnwise.configuration;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ConfigForwarding extends ConfigAdaptation {
+
+   private final Map<String, String> timeout = new HashMap<>();
+
+   public final Map<String, String> getTimeout(){
+      return Collections.unmodifiableMap(timeout);
+   }
+
 }
