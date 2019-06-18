@@ -72,7 +72,9 @@ class AdapterWebTest {
     @AfterAll
     static void tearDown(){
         System.out.println("after.all");
-        dut.close();
+        try {
+            dut.close();
+        }catch (Exception e){}
     }
 
     public class  myObserverMock implements Observer{
