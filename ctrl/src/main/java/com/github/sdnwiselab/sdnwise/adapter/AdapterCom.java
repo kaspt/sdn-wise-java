@@ -16,6 +16,7 @@
  */
 package com.github.sdnwiselab.sdnwise.adapter;
 
+import com.github.sdnwiselab.sdnwise.controlplane.ControlPlaneLogger;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import gnu.io.CommPortIdentifier;
 import gnu.io.PortInUseException;
@@ -171,6 +172,10 @@ public class AdapterCom extends AbstractAdapter {
                     out.write(data);
                    // out.write(stopByte);
                     out.flush();
+                    if(new NetworkPacket(data).getTyp() == NetworkPacket.WEB_REQUEST){
+                        ControlPlaneLogger.LogTimeStamp("com_out"
+                                + Arrays.toString(data));
+                    }
                 }
             } catch (IOException ex) {
                 log(Level.SEVERE, ex.toString());
@@ -254,6 +259,10 @@ public class AdapterCom extends AbstractAdapter {
                                 byte[] bytePacket = new byte[packet.size()];
                                 for (int i = 0; i < bytePacket.length; i++) {
                                     bytePacket[i] = packet.poll();
+                                }
+                                if(new NetworkPacket(bytePacket).getTyp() == NetworkPacket.WEB_REQUEST){
+                                    ControlPlaneLogger.LogTimeStamp("com_in"
+                                            + Arrays.toString(bytePacket));
                                 }
                                 setChanged();
                                 notifyObservers(bytePacket);

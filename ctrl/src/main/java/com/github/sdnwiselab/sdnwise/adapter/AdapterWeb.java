@@ -312,12 +312,11 @@ public class AdapterWeb extends AbstractAdapter{
         }
 
         @Override
-        public void send(final byte[] data) {
+        public synchronized void send(final byte[] data) {
             // Todo Find first, don't iterate over the hole list
             log(Level.INFO,
                     "send to web open client sockets:("
-                            + clientSockets.size() +
-                            ")");
+                            + clientSockets.size() +")");
             clientSockets.stream().forEach((sck) -> {
                 InetAdapterPacket packet = new InetAdapterPacket(data);
                 InetSocketAddress remoteaddress =
@@ -342,6 +341,8 @@ public class AdapterWeb extends AbstractAdapter{
                             ControlPlaneLogger.LogTimeStamp("web_out"
                                     + Arrays.toString(payload));
                             dos.write(response);
+                            sck.close();
+                            removableSockets.add(sck);
                         }
 
                     }

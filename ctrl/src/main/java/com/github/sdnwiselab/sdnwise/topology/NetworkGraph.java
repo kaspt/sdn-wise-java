@@ -225,50 +225,7 @@ public class NetworkGraph extends Observable {
      * @param newLen the weight of the edge
      */
     public void updateEdge(final Edge edge, final int newLen) {
-    	
-    		// TODO some magic here
-    		double cost = 0;
-        try {
-        	//	System.out.println(edge.getNode0().getId() + " -----> " + edge.getNode1().getId());
-        //	System.out.println(edge.getNode0().getDegree() + edge.getNode1().getDegree());
-        	
-        		int totalTraffic = 0;
-        		for(Node node : graph.getEachNode()) {
-        			totalTraffic += (int)node.getAttribute("rxcount") + (int)node.getAttribute("txcount");
-        		}
-        	
-        		int rxCountNode0 = edge.getNode0().getAttribute("rxcount");
-        		int txCountNode0 = edge.getNode0().getAttribute("txcount");
-        		int rxCountNode1 = edge.getNode0().getAttribute("rxcount");
-        		int txCountNode1 = edge.getNode0().getAttribute("txcount");
-        		
-        		double trafficFraction0 = (double) ((rxCountNode0+txCountNode0)*1.0 / totalTraffic);
-        		double trafficFraction1 = (double) ((rxCountNode1+txCountNode1)*1.0 / totalTraffic);
-        		        		
-        		BetweennessCentrality bcb = new BetweennessCentrality();
-        		bcb.setUnweighted();
-    
-        		bcb.init(graph);
-        		bcb.compute();
-        		
-        		double centrality = 0;
-        		for(Node node : graph.getEachNode()) {
-        			centrality += (double)node.getAttribute("Cb");
-        		}
-        		double node0Centrality = (double)edge.getNode0().getAttribute("Cb")/centrality;
-        		double node1Centrality = (double)edge.getNode1().getAttribute("Cb")/centrality;
-
-        		cost = (trafficFraction0+trafficFraction1+node0Centrality+node1Centrality)/4;
-        		
-        		System.out.println("Cost: " + cost);
-        		if(cost < 0) {
-        			cost = 0;
-        		}
-        } catch(Exception e) {
-        		System.out.println(e);
-        }
-    	
-        edge.addAttribute("length", cost);
+        edge.addAttribute("length", newLen);
     }
 
     /**

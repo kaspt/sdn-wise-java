@@ -44,6 +44,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,9 +77,11 @@ class ForwardingTest {
 
         mapping = mock(AbstractMapping.class);
 
-        fwd = new Forwarding(lowers, upper, mapping);
-
-
+        fwd = new Forwarding(lowers, upper, mapping,
+                "0.1",
+                1,
+                TimeUnit.SECONDS,
+                0);
     }
 
     @BeforeEach

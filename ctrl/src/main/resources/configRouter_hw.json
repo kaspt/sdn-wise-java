@@ -7,15 +7,9 @@
         "DATA_BITS": "8",
         "PARITY": "0",
         "START_BYTE": "122",
-        "PORT_NAME": "/dev/tty.usbserial-XBS38FGW",
+        "PORT_NAME": "/dev/ttyUSB0",
         "STOP_BYTE": "126",
         "BAUD_RATE": "115200"
-      },
-      {
-        "TYPE": "COOJA",
-        "IS_SERVER":"TRUE",
-        "IP": "localhost",
-        "PORT": "9991"
       }
     ],
     "upper": [
@@ -40,14 +34,14 @@
       }
     ],
     "sockets": {
-      "BACKLOG": "5"
+      "BACKLOG": "255"
     }
   },
   
   "mapping": {
     "resource": {
       "TYPE": "STATIC",
-      "FILE":"/mapping.csv"
+      "FILE":"/mapping_hw.csv"
     }
   },
   
@@ -67,7 +61,6 @@
         "PORT": "9993",
         "ADAPTER_ID": "ADAPT_NODE"
       }
-    
     ],
     "upper": [
       {
@@ -75,7 +68,12 @@
         "IS_SERVER":"FALSE",
         "IP":"192.168.214.1",
         "PORT": "9999"
-      }]
+      }],
+    "timeout": {
+      "TIME": "1",
+      "TIMEUNIT": "MINUTES",
+      "REPETITION": "0"
+    }
   },
   
   "flowvisor": {
